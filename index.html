@@ -2,56 +2,57 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EW6 AI & Hex Editor</title>
-    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EW6 Hex Editor AI PRO</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
+
+    <div class="header-panel">
+        <div class="header-title">
+            <h1>EW6 Hex Editor AI</h1>
+            <p>Created by Zynex & Gemini 2.5</p>
+        </div>
+        <button class="btn-lang" onclick="dilDegistir()">TR / EN</button>
+    </div>
+
+    <div class="editor-container">
+        
         <div class="chat-section">
-            <div class="section-header">🤖 AI Mod Assistant</div>
             <div class="chat-box" id="chatBox">
-                <div class="message ai-message">
-                    EW6 Asistanı aktif! İster buraya kodları yapıştırın, ister aşağıdaki Hex Editör panelini kullanarak sayıları dönüştürün. Sınır yok, istediğiniz her şeyi sorabilirsiniz kral!
+                <div class="message ai-message" id="welcomeMsg">
+                    ✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.
                 </div>
             </div>
             <div class="input-area">
-                <textarea id="input" placeholder="AI'ye soru sorun veya kod yapıştırın..."></textarea>
-                <div class="button-group">
-                    <button class="btn-clear" onclick="temizleChatGPT()">Temizle</button>
-                    <button class="btn-send" onclick="aiAnalizEt()">Gönder</button>
-                </div>
+                <input type="text" id="input" placeholder="Bir şeyler sorun veya hex dizilimi girin..." onkeypress="if(event.key === 'Enter') aiAnalizEt()">
+                <button class="btn-action" onclick="aiAnalizEt()">➔</button>
             </div>
         </div>
 
-        <div class="editor-section">
-            <div class="section-header">🛠️ TK Yunus Hex Converter</div>
-            <div class="editor-box">
-                <div class="input-row">
-                    <input type="number" id="decInput" placeholder="Sayı girin (Örn: 4355)" oninput="decToHexConvert()">
+        <div class="tools-section">
+            
+            <div class="converter-box">
+                <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
+                <div>
+                    <div class="result-text">Hex: <span id="hexResult">0000</span></div>
+                    <div class="result-text" style="color:#ffcc00">Game: <span id="gameHexResult">00 00</span></div>
                 </div>
-                <div class="result-row">
-                    <div class="hex-block">
-                        <span>Normal Hex</span>
-                        <strong id="hexResult">0000</strong>
-                    </div>
-                    <div class="hex-block highlighted">
-                        <span>Oyun Kodu (Little Endian)</span>
-                        <strong id="gameHexResult">00 00</strong>
-                    </div>
-                </div>
+                <button class="btn-lang" style="margin-left:auto; background:#c62828" onclick="temizleChatGPT()">C</button>
             </div>
 
-            <div class="section-header">💾 Dosya Hex Editörü (Modlama)</div>
-            <div class="editor-box">
-                <div class="input-row">
-                    <input type="file" id="fileInput">
-                </div>
-                <div id="hexViewer">Modlamak istediğiniz dosyayı yukarıdan seçin kral...</div>
-                <button id="downloadBtn" style="display: none; width: 100%;" onclick="downloadModdedFile()">📥 Modlu Dosyayı İndir</button>
+            <label for="fileInput" class="file-upload-btn" id="lblOpenFile">📂 Dosya Seç / Open File</label>
+            <input type="file" id="fileInput">
+
+            <div class="hex-viewer" id="hexViewer">
+                <div id="hexPlaceholder" class="placeholder-text">Modlamaya başlamak için yukarıdan bir dosya seçiniz...</div>
+                <div id="hexEditorGrid" style="display:none; flex-direction:column;"></div>
             </div>
+
+            <button class="btn-action" id="downloadBtn" style="display:none; background:#0091ea;" onclick="downloadModdedFile()">💾 Değişiklikleri Kaydet ve İndir</button>
         </div>
     </div>
-    <script src="./script.js"></script>
+
+    <script src="script.js"></script>
 </body>
 </html>
