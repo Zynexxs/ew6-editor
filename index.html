@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EW6 AI & Hex Editor</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="chat-section">
+            <div class="section-header">🤖 AI Mod Assistant</div>
+            <div class="chat-box" id="chatBox">
+                <div class="message ai-message">
+                    EW6 Asistanı aktif! İster buraya kodları yapıştırın, ister aşağıdaki Hex Editör panelini kullanarak sayıları dönüştürün. Sınır yok, istediğiniz her şeyi sorabilirsiniz kral!
+                </div>
+            </div>
+            <div class="input-area">
+                <textarea id="input" placeholder="AI'ye soru sorun veya kod yapıştırın..."></textarea>
+                <div class="button-group">
+                    <button class="btn-clear" onclick="temizleChatGPT()">Temizle</button>
+                    <button class="btn-send" onclick="aiAnalizEt()">Gönder</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="section-header">🛠️ TK Yunus Hex Converter</div>
+            <div class="editor-box">
+                <div class="input-row">
+                    <input type="number" id="decInput" placeholder="Sayı girin (Örn: 4355)" oninput="decToHexConvert()">
+                </div>
+                <div class="result-row">
+                    <div class="hex-block">
+                        <span>Normal Hex</span>
+                        <strong id="hexResult">0000</strong>
+                    </div>
+                    <div class="hex-block highlighted">
+                        <span>Oyun Kodu (Little Endian)</span>
+                        <strong id="gameHexResult">00 00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">💾 Dosya Hex Editörü (Modlama)</div>
+            <div class="editor-box">
+                <div class="input-row">
+                    <input type="file" id="fileInput">
+                </div>
+                <div id="hexViewer">Modlamak istediğiniz dosyayı yukarıdan seçin kral...</div>
+                <button id="downloadBtn" style="display: none; width: 100%;" onclick="downloadModdedFile()">📥 Modlu Dosyayı İndir</button>
+            </div>
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
