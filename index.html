@@ -2,48 +2,54 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EW6 Hex Editor AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EW6 Hex Editor AI PRO</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="header">
-            <div class="title-section">
-                <h1>EW6 Assistant AI</h1>
-                <p>Zynex & Gemini Engine v2.5</p>
-            </div>
-            <div class="control-buttons">
-                <button id="langBtn" onclick="dilDegistir()">TR / EN</button>
-                <button id="clearBtn" onclick="temizleSohbet()">C</button>
-            </div>
+    <div class="header-panel">
+        <div class="header-title">
+            <h1>EW6 Hex Editor AI</h1>
+            <p>Created by Zynex & Gemini 2.5</p>
         </div>
+        <button class="btn-lang" onclick="dilDegistir()">TR / EN</button>
+    </div>
 
-        <div class="converter-box">
-            <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
-            <div class="converter-results">
-                <div>Hex: <strong id="hexResult">0000</strong></div>
-                <div>Game: <strong id="gameHexResult">00 00</strong></div>
+    <div class="editor-container">
+        
+        <div class="chat-section">
+            <div class="chat-box" id="chatBox">
+                <div class="message ai-message" id="welcomeMsg">
+                    ✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.
+                </div>
             </div>
-        </div>
-
-        <div class="chat-container">
-            <div id="chatBox" class="chat-box"></div>
             <div class="input-area">
-                <input type="text" id="input" onkeydown="if(event.key === 'Enter') aiAnalizEt()">
-                <button onclick="aiAnalizEt()">➔</button>
+                <input type="text" id="input" placeholder="Bir şeyler sorun veya hex dizilimi girin..." onkeypress="if(event.key === 'Enter') aiAnalizEt()">
+                <button class="btn-action" onclick="aiAnalizEt()">➔</button>
             </div>
         </div>
 
-        <div class="file-section">
-            <label for="fileInput" id="lblOpenFile" class="file-label">📂 Dosya Seç / Open File</label>
-            <input type="file" id="fileInput" style="display: none;">
+        <div class="tools-section">
             
-            <div id="hexPlaceholder" class="hex-placeholder"></div>
-            <div id="hexEditorGrid" class="hex-grid" style="display: none;"></div>
-            
-            <button id="downloadBtn" class="download-btn" onclick="downloadModdedFile()" style="display: none;">💾 Download File</button>
+            <div class="converter-box">
+                <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
+                <div>
+                    <div class="result-text">Hex: <span id="hexResult">0000</span></div>
+                    <div class="result-text" style="color:#ffcc00">Game: <span id="gameHexResult">00 00</span></div>
+                </div>
+                <button class="btn-lang" style="margin-left:auto; background:#c62828" onclick="temizleChatGPT()">C</button>
+            </div>
+
+            <label for="fileInput" class="file-upload-btn" id="lblOpenFile">📂 Dosya Seç / Open File</label>
+            <input type="file" id="fileInput">
+
+            <div class="hex-viewer" id="hexViewer">
+                <div id="hexPlaceholder" class="placeholder-text">Modlamaya başlamak için yukarıdan bir dosya seçiniz...</div>
+                <div id="hexEditorGrid" style="display:none; flex-direction:column;"></div>
+            </div>
+
+            <button class="btn-action" id="downloadBtn" style="display:none; background:#0091ea;" onclick="downloadModdedFile()">💾 Değişiklikleri Kaydet ve İndir</button>
         </div>
     </div>
 
