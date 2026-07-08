@@ -1,9 +1,10 @@
+
 let mevcutDil = "tr";
 let sohbetGecmisi = [];
 let fileData = null;
 
-// BURAYA KENDİ ALDIĞIN API ANAHTARINI YAPIŞTIR
-const GEMINI_API_KEY = "BURAYA_ALDIĞIN_AIzaSy_ILE_BAŞLAYAN_ANAHTARI_YAZ";
+// Google AI Studio'dan aldığın güncel API anahtarı
+const GEMINI_API_KEY = "AQ.Ab8RN6I4JAigLICjgAm6kAJGzjtxGfUouosW12bYbk4Ce1Hu5A";
 
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
