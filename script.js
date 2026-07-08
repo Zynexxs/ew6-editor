@@ -2,6 +2,9 @@ let mevcutDil = "tr";
 let sohbetGecmisi = [];
 let fileData = null;
 
+// Google AI Studio API Anahtarın
+const GEMINI_API_KEY = "AQ.Ab8RN6I4JAigLICjgAm6kAJGzjtxGfUouosW12bYbk4Ce1Hu5A";
+
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
         "01": "Osmanlı İmparatorluğu", "02": "Büyük Britanya", "03": "Fransa",
@@ -16,29 +19,29 @@ const SYSTEM_KNOWLEDGE = {
 const diller = {
     tr: {
         placeholder: "Bir şeyler sorun veya hex dizilimi girin...",
-        thinking: "✨ Yapay zeka analiz ediyor...",
+        thinking: "✨ Gemini analiz ediyor...",
         welcome: "✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.",
         lblOpenFile: "📂 Dosya Seç / Open File",
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Bu hex dizilimini aramak için öncelikle yukarıdan bir dosya yüklemelisiniz.",
         found: function(sayi, indeks) { return `🎯 <b>Dizilim Bulundu!</b><br>Eşleşme Sayısı: <b>${sayi}</b><br>İlk İndeks: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" dizilimi dosyada bulunamadı.`; },
-        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver.",
-        offlineAi: "🤖 Yapay zeka şu an yoğun. Lütfen birkaç saniye sonra tekrar yazın.",
+        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver. Kullanıcı hangi dilde yazarsa o dilde cevap ver.",
+        offlineAi: "🤖 Google API Bağlantı Hatası. Sayfayı yenileyip tekrar deneyin.",
         promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; }
     },
     en: {
-        placeholder: "Ask something...",
-        thinking: "✨ AI analyzing...",
-        welcome: "✨ EW6 Assistant active.",
-        lblOpenFile: "📂 Open File",
+        placeholder: "Ask something or enter hex sequence...",
+        thinking: "✨ Gemini analyzing...",
+        welcome: "✨ EW6 1804 & 1914 Modding Assistant is active. You can upload your file and search for hex sequences or ask questions about country codes.",
+        lblOpenFile: "📂 Open File / Dosya Seç",
         lblDec: "Number / Dec...",
-        needFile: "⚙️ Please upload a file first.",
-        found: function(sayi, indeks) { return `🎯 Found <b>${sayi}</b> times.<br>First Index: <b>${indeks}</b>.`; },
-        notFound: function(girdi) { return `❌ "${girdi}" not found.`; },
-        systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief.",
-        offlineAi: "🤖 AI is busy. Please try again in a few seconds.",
-        promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex:`; }
+        needFile: "⚙️ Please upload a file from above first to search this hex sequence.",
+        found: function(sayi, indeks) { return `🎯 <b>Sequence Found!</b><br>Match Count: <b>${sayi}</b><br>First Index: <b>${indeks}</b>.`; },
+        notFound: function(girdi) { return `❌ "${girdi}" sequence not found in the file.`; },
+        systemPrompt: "You are an expert European War 6 modding assistant. Give brief, clear, and informative answers. Always reply in English.",
+        offlineAi: "🤖 Google API Connection Error. Please refresh the page and try again.",
+        promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex (2 characters):`; }
     }
 };
 
@@ -52,6 +55,9 @@ function dilDegistir() {
     document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
+    
+    // Sohbet kutusundaki karşılama mesajını da dile göre günceller
+    document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
 }
 
 async function aiAnalizEt() {
@@ -69,7 +75,7 @@ async function aiAnalizEt() {
     let temizGirdi = girdi.toLowerCase().replace(/\s+/g, ' ');
 
     if (selamlar[mevcutDil].includes(temizGirdi)) {
-        document.getElementById(aiResponseId).innerHTML = "🔮 Merhaba! Yapay zeka aktif. Bugün hangi hex üzerinde çalışıyoruz?";
+        document.getElementById(aiResponseId).innerHTML = mevcutDil === "tr" ? "🔮 Merhaba! Gemini aktif. Bugün hangi hex üzerinde çalışıyoruz?" : "🔮 Hello! Gemini is active. Which hex are we working on today?";
         return;
     }
 
@@ -77,7 +83,7 @@ async function aiAnalizEt() {
     if (kodYakala) {
         let bulunanKod = kodYakala[1].toUpperCase();
         if (SYSTEM_KNOWLEDGE.game_1804[bulunanKod] || SYSTEM_KNOWLEDGE.game_1914[bulunanKod]) {
-            let cevap = `📊 <b>${bulunanKod} Kodu Sonuçları:</b><br>`;
+            let cevap = `📊 <b>${bulunanKod} Kodu Sonuçları / Results:</b><br>`;
             if(SYSTEM_KNOWLEDGE.game_1804[bulunanKod]) cevap += `• 1804: ${SYSTEM_KNOWLEDGE.game_1804[bulunanKod]}<br>`;
             if(SYSTEM_KNOWLEDGE.game_1914[bulunanKod]) cevap += `• 1914: ${SYSTEM_KNOWLEDGE.game_1914[bulunanKod]}<br>`;
             document.getElementById(aiResponseId).innerHTML = cevap;
@@ -108,23 +114,25 @@ async function aiAnalizEt() {
         return;
     }
 
-    // Anahtarsız ve Herkese Açık Ücretsiz Yapay Zeka Hattı
     try {
-        let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+        
+        let response = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": GEMINI_API_KEY
+            },
             body: JSON.stringify({
-                "model": "meta-llama/llama-3-8b-instruct:free",
-                "messages": [
-                    {"role": "system", "content": diller[mevcutDil].systemPrompt},
-                    {"role": "user", "content": girdi}
-                ]
+                "contents": [{
+                    "parts": [{ "text": diller[mevcutDil].systemPrompt + "\nUser Question: " + girdi }]
+                }]
             })
         });
 
         let data = await response.json();
-        if (data.choices && data.choices[0].message.content) {
-            document.getElementById(aiResponseId).innerHTML = data.choices[0].message.content.trim();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            document.getElementById(aiResponseId).innerHTML = data.candidates[0].content.parts[0].text.trim();
         } else {
             throw new Error();
         }
