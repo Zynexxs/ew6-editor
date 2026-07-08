@@ -2,9 +2,6 @@ let mevcutDil = "tr";
 let sohbetGecmisi = [];
 let fileData = null;
 
-// Hugging Face üzerinden aldığın güncel API anahtarı
-const HF_API_KEY = "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";
-
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
         "01": "Osmanlı İmparatorluğu", "02": "Büyük Britanya", "03": "Fransa",
@@ -26,8 +23,8 @@ const diller = {
         needFile: "⚙️ Bu hex dizilimini aramak için öncelikle yukarıdan bir dosya yüklemelisiniz.",
         found: function(sayi, indeks) { return `🎯 <b>Dizilim Bulundu!</b><br>Eşleşme Sayısı: <b>${sayi}</b><br>İlk İndeks: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" dizilimi dosyada bulunamadı.`; },
-        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Türkçe, kısa, net ve bilgilendirici cevaplar ver.",
-        offlineAi: "🤖 Bağlantı hatası. Lütfen daha sonra tekrar deneyin.",
+        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver.",
+        offlineAi: "🤖 Yapay zeka şu an yoğun. Lütfen birkaç saniye sonra tekrar yazın.",
         promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; }
     },
     en: {
@@ -39,8 +36,8 @@ const diller = {
         needFile: "⚙️ Please upload a file first.",
         found: function(sayi, indeks) { return `🎯 Found <b>${sayi}</b> times.<br>First Index: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" not found.`; },
-        systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief and in English.",
-        offlineAi: "🤖 Connection error. Please try again later.",
+        systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief.",
+        offlineAi: "🤖 AI is busy. Please try again in a few seconds.",
         promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex:`; }
     }
 };
@@ -52,7 +49,7 @@ const selamlar = {
 
 function dilDegistir() {
     mevcutDil = mevcutDil === "tr" ? "en" : "tr";
-    document.getElementById('input').placeholder = diller[mevyetDil].placeholder;
+    document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
 }
@@ -72,7 +69,7 @@ async function aiAnalizEt() {
     let temizGirdi = girdi.toLowerCase().replace(/\s+/g, ' ');
 
     if (selamlar[mevcutDil].includes(temizGirdi)) {
-        document.getElementById(aiResponseId).innerHTML = "🔮 Merhaba! Yapay zeka asistanı aktif. Bugün hangi hex üzerinde çalışıyoruz?";
+        document.getElementById(aiResponseId).innerHTML = "🔮 Merhaba! Yapay zeka aktif. Bugün hangi hex üzerinde çalışıyoruz?";
         return;
     }
 
@@ -111,26 +108,23 @@ async function aiAnalizEt() {
         return;
     }
 
-    // Hugging Face Üzerinden Sunucusuz Llama-3 Modeli Bağlantısı
+    // Anahtarsız ve Herkese Açık Ücretsiz Yapay Zeka Hattı
     try {
-        let response = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct", {
+        let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
-            headers: { 
-                "Authorization": `Bearer ${HF_API_KEY}`,
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                inputs: `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n${diller[mevcutDil].systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n${girdi}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`,
-                parameters: { max_new_tokens: 250, stop: ["<|eot_id|>"] }
+                "model": "meta-llama/llama-3-8b-instruct:free",
+                "messages": [
+                    {"role": "system", "content": diller[mevcutDil].systemPrompt},
+                    {"role": "user", "content": girdi}
+                ]
             })
         });
 
         let data = await response.json();
-        if (data && data[0] && data[0].generated_text) {
-            let fullText = data[0].generated_text;
-            let splitText = fullText.split("<|start_header_id|>assistant<|end_header_id|>\n\n");
-            let aiCevap = splitText[splitText.length - 1].replace("<|eot_id|>", "").trim();
-            document.getElementById(aiResponseId).innerHTML = aiCevap;
+        if (data.choices && data.choices[0].message.content) {
+            document.getElementById(aiResponseId).innerHTML = data.choices[0].message.content.trim();
         } else {
             throw new Error();
         }
