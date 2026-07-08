@@ -1,147 +1,131 @@
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
-    background-color: #0f0c1b;
-    color: #e2e1e9;
+    background-color: #090a0f;
+    color: #e2e4e9;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     padding: 10px;
-    min-height: 100vh;
 }
 
 .app-container {
-    width: 100%;
-    max-width: 480px;
-    background: #16122c;
-    border-radius: 20px;
-    padding: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    border: 1px solid #251f47;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    width: 100%;
+    max-width: 480px;
+    background: #111218;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #222433;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
-/* Header */
-.header {
+/* Üst Bar Tasarımı */
+.main-header {
+    background: #171821;
+    padding: 12px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #251f47;
-    padding-bottom: 10px;
+    border-bottom: 1px solid #222433;
 }
 
-.title-section h1 {
-    font-size: 18px;
+.brand h3 {
+    font-size: 15px;
     color: #a370f7;
     font-weight: 700;
 }
 
-.title-section p {
+.author {
     font-size: 11px;
-    color: #7d789a;
+    color: #6c7293;
+    display: block;
+    font-weight: 500;
+    margin-top: 2px;
 }
 
-.control-buttons {
+.header-btns {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
-.control-buttons button {
-    background: #251f47;
+.lang-btn, .new-chat-btn {
+    background: #222433;
     color: #fff;
-    border: 1px solid #3d3570;
-    padding: 6px 12px;
+    border: none;
+    padding: 6px 10px;
     border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-    transition: 0.2s;
 }
 
-.control-buttons button:active {
+.lang-btn:active, .new-chat-btn:active {
     background: #a370f7;
 }
 
-#clearBtn {
-    background: #c0392b;
-    border-color: #e74c3c;
-}
-
-/* Converter */
-.converter-box {
+/* Hızlı Dönüştürücü */
+.quick-converter {
+    background: #12131a;
+    padding: 10px 12px;
     display: flex;
-    background: #1f1a3a;
-    padding: 12px;
-    border-radius: 12px;
-    align-items: center;
     gap: 12px;
-    border: 1px solid #2d2654;
+    align-items: center;
+    border-bottom: 1px solid #222433;
 }
 
 #decInput {
-    width: 45%;
-    background: #0f0c1b;
-    border: 1px solid #362d66;
+    width: 110px;
+    background: #171821;
+    border: 1px solid #222433;
     color: #fff;
-    padding: 8px;
+    padding: 6px;
     border-radius: 8px;
     outline: none;
-    font-size: 14px;
+    font-size: 12px;
     text-align: center;
 }
 
-.converter-results {
+.convert-results {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    font-size: 13px;
-    font-family: monospace;
+    gap: 12px;
+    font-size: 11px;
+    color: #6c7293;
 }
 
-.converter-results strong {
+.convert-results strong {
     color: #ffca28;
-    font-size: 14px;
 }
 
-/* Chat System */
-.chat-container {
-    background: #1f1a3a;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid #251f47;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-box {
-    height: 260px;
+/* Mesajlaşma Alanı */
+.messages-container {
+    height: 200px;
     padding: 12px;
     overflow-y: auto;
+    background: #0d0e14;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: #120e24;
+    gap: 8px;
 }
 
 .message {
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 13.5px;
     max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13px;
     line-height: 1.4;
     word-wrap: break-word;
 }
 
 .ai-message {
-    background: #251f47;
-    color: #e2e1e9;
+    background: #171821;
+    color: #e2e4e9;
     align-self: flex-start;
     border-left: 3px solid #a370f7;
 }
@@ -150,120 +134,116 @@ body {
     background: #a370f7;
     color: #fff;
     align-self: flex-end;
-    font-weight: 500;
 }
 
-.input-area {
+/* Giriş Çerçevesi */
+.input-wrapper {
+    padding: 10px;
+    background: #111218;
+    border-top: 1px solid #222433;
+}
+
+.input-container {
     display: flex;
-    border-top: 1px solid #251f47;
-    background: #16122c;
-    align-items: center;
+    background: #171821;
+    border-radius: 10px;
+    border: 1px solid #222433;
+    overflow: hidden;
 }
 
-.input-area input {
+.input-container input {
     flex: 1;
     background: transparent;
     border: none;
-    padding: 14px;
+    padding: 10px;
     color: #fff;
     outline: none;
-    font-size: 13.5px;
+    font-size: 12.5px;
 }
 
-.input-area button {
+.gemini-send-btn {
     background: #a370f7;
-    border: none;
-    color: white;
-    font-size: 16px;
-    padding: 14px 18px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-/* Hex Editor View */
-.file-section {
-    background: #1f1a3a;
-    padding: 15px;
-    border-radius: 14px;
-    border: 1px solid #2d2654;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.file-label {
-    display: block;
-    background: #34495e;
     color: #fff;
-    padding: 12px;
-    border-radius: 10px;
+    border: none;
+    padding: 0 14px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 13.5px;
-    text-align: center;
-    transition: 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.hex-placeholder {
-    font-size: 12px;
-    color: #7d789a;
-    text-align: center;
-    padding: 15px 0;
+/* Dosya Seçme */
+.file-panel {
+    padding: 8px 10px;
+    display: flex;
+    gap: 8px;
+    background: #12131a;
+    border-top: 1px solid #222433;
 }
 
-.hex-grid {
-    max-height: 180px;
+#fileInput { display: none; }
+
+.file-label, #downloadBtn {
+    flex: 1;
+    background: #222433;
+    color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-weight: 600;
+    border: none;
+}
+
+#downloadBtn { background: #27ae60; }
+
+/* Hex Editör Alanı */
+.hex-viewer-container {
+    height: 160px;
+    padding: 10px;
+    background: #090a0f;
     overflow-y: auto;
+    border-top: 1px solid #222433;
+}
+
+.hex-empty-msg {
+    color: #6c7293;
+    font-size: 12px;
+    text-align: center;
+    padding-top: 50px;
+}
+
+.hex-editor-grid {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    background: #0f0c1b;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #251f47;
+    gap: 4px;
+    font-family: monospace;
+    font-size: 12px;
 }
 
 .hex-row {
     display: flex;
-    font-family: 'Courier New', monospace;
-    font-size: 13.5px;
     align-items: center;
 }
 
-.hex-offset {
+.hex-address {
     color: #5c5589;
-    margin-right: 12px;
     font-weight: bold;
+    margin-right: 12px;
 }
 
 .hex-bytes {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
-.hex-byte-btn {
+.hex-byte {
     cursor: pointer;
     color: #bbadff;
-    padding: 2px 4px;
+    padding: 1px 3px;
     border-radius: 4px;
-    transition: 0.1s;
 }
 
-.hex-byte-btn:hover {
+.hex-byte:hover {
     background: #a370f7;
     color: #fff;
-}
-
-.download-btn {
-    width: 100%;
-    background: #27ae60;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    box-shadow: 0 4px 12px rgba(39,174,96,0.3);
 }
