@@ -2,7 +2,7 @@ let mevcutDil = "tr";
 let fileData = null;
 let secilenIndeksler = []; // Çoklu seçim için tıklanan indeksleri tutar
 
-// Sistemine yeni aldığın çalışır vaziyetteki gerçek API anahtarın doğrudan gömüldü
+// Gemini API Anahtarın doğrudan buraya gömüldü kral
 const GEMINI_API_KEY = "AQ.Ab8RN6KVfdbzA--QAOOGUidgVx32_tXtPaWKjxIRZe1xtyLlvg"; 
 
 const SYSTEM_KNOWLEDGE = {
@@ -78,7 +78,7 @@ async function aiAnalizEt() {
     document.getElementById('input').value = ''; 
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Kullanıcının yazdığı ekstra arama komutlarını temizleyip sadece ham hex kodunu izole etme
+    // "arama yap", "bul" gibi ekstra kelimeleri temizleyip sadece saf hex kodunu filtreleme
     let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/\s+/g, '').trim();
     let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2;
 
@@ -114,11 +114,13 @@ async function aiAnalizEt() {
             }
             chatBox.innerHTML += `<div class="message ai-message">${responseHTML}</div>`;
             
-            // Grid'i tazele ve bulunan ilk byte bloğunun üstüne ekranı akıcı kaydır
+            // Grid'i render et ve bulunan ilk byte bloğunun üzerine otomatik kaydır (Yönlendir)
             renderHexView(bulunanIndeksler, arananByteDizisi.length);
             setTimeout(() => {
                 let hedefByte = document.querySelector('.highlighted-hex');
-                if (hedefByte) hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (hedefByte) {
+                    hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }, 200);
 
         } else {
@@ -137,7 +139,7 @@ async function aiAnalizEt() {
         }
 
         try {
-            // "AQ." Tipi anahtarlar için header korumalı ve güncel dilli fetch çağrısı
+            // "AQ." Tipi anahtarlar için header korumalı ve dil destekli fetch isteği
             const response = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
                 {
@@ -193,15 +195,15 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
             byteBtn.id = `byte_${currentIndex}`;
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
             
-            // Byte'a tıklandığında çoklu seçim tetiklenir
+            // Byte'a tıklandığında Çoklu Seçim Moduna alır
             byteBtn.setAttribute('onclick', `toggleByteSelection(${currentIndex})`);
 
-            // Arama sonuçlarını renklendirme
+            // Arama sonuçlarında vurgulanacak alanlar
             if (vurgulanacakIndeksler.some(b => currentIndex >= b && currentIndex < b + arananUzunluk)) {
                 byteBtn.classList.add('highlighted-hex');
                 byteBtn.style.background = "#a370f7"; byteBtn.style.color = "#fff";
             }
-            // Aktif seçilmiş manuel byte sınırları
+            // Önceden seçilmiş alanları renklendir
             if (secilenIndeksler.includes(currentIndex)) {
                 byteBtn.style.border = "2px solid #ff4757";
                 byteBtn.style.background = "#2f3542";
@@ -288,3 +290,4 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
+                                                                                        
