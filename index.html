@@ -2,8 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EW6 Hex Editor & AI Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EW6 Hex Editor AI</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     <div class="app-container">
         <div class="header">
             <div class="title-section">
-                <h1>EW6 Hex Editor AI</h1>
-                <p>Created by Zynex & Gemini</p>
+                <h1>EW6 Assistant AI</h1>
+                <p>Zynex & Gemini Engine v2.5</p>
             </div>
             <div class="control-buttons">
                 <button id="langBtn" onclick="dilDegistir()">TR / EN</button>
@@ -23,17 +23,15 @@
         <div class="converter-box">
             <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
             <div class="converter-results">
-                <span>Hex: <strong id="hexResult">0000</strong></span>
-                <span>Game: <strong id="gameHexResult">00 00</strong></span>
+                <div>Hex: <strong id="hexResult">0000</strong></div>
+                <div>Game: <strong id="gameHexResult">00 00</strong></div>
             </div>
         </div>
 
         <div class="chat-container">
-            <div id="chatBox" class="chat-box">
-                <div class="message ai-message">✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.</div>
-            </div>
+            <div id="chatBox" class="chat-box"></div>
             <div class="input-area">
-                <input type="text" id="input" placeholder="Bir şeyler sorun veya hex dizilimi girin..." onkeydown="if(event.key === 'Enter') aiAnalizEt()">
+                <input type="text" id="input" onkeydown="if(event.key === 'Enter') aiAnalizEt()">
                 <button onclick="aiAnalizEt()">➔</button>
             </div>
         </div>
@@ -42,10 +40,10 @@
             <label for="fileInput" id="lblOpenFile" class="file-label">📂 Dosya Seç / Open File</label>
             <input type="file" id="fileInput" style="display: none;">
             
-            <div id="hexPlaceholder" class="hex-placeholder">Modlamaya başlamak için yukarıdan bir dosya seçiniz...</div>
+            <div id="hexPlaceholder" class="hex-placeholder"></div>
             <div id="hexEditorGrid" class="hex-grid" style="display: none;"></div>
             
-            <button id="downloadBtn" class="download-btn" onclick="downloadModdedFile()" style="display: none;">💾 Modlu Dosyayı İndir</button>
+            <button id="downloadBtn" class="download-btn" onclick="downloadModdedFile()" style="display: none;">💾 Download File</button>
         </div>
     </div>
 
