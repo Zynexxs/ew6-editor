@@ -42,17 +42,6 @@
             <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 İndir / Download</button>
         </div>
 
-        <div class="manual-menu-panel" id="manualMenu" style="display: none;">
-            <div class="menu-title">🛠️ Çoklu Seçim & Düzenleme</div>
-            <div class="menu-info" id="selectedCountInfo">Seçilen Byte Sayısı: 0</div>
-            <div class="menu-actions">
-                <input type="text" id="batchHexInput" placeholder="Yeni Hex (Örn: FF)" maxlength="2">
-                <button class="action-btn change-btn" onclick="topluDegistir()">✏️ Değiştir</button>
-                <button class="action-btn delete-btn" onclick="topluSil()">🗑️ Sıfırla (00)</button>
-                <button class="action-btn clear-btn" onclick="secimleriTemizle()">❌ Temizle</button>
-            </div>
-        </div>
-
         <div class="hex-viewer-container">
             <div id="hexPlaceholder" class="hex-empty-msg"></div>
             <div id="hexEditorGrid" class="hex-editor-grid" style="display: none;"></div>
@@ -62,4 +51,3 @@
     <script src="script.js"></script>
 </body>
 </html>
- 
