@@ -2,14 +2,17 @@ let mevcutDil = "tr";
 let sohbetGecmisi = [];
 let fileData = null;
 
+// BURAYA KENDİ ALDIĞIN API ANAHTARINI YAPIŞTIR
+const GEMINI_API_KEY = "BURAYA_ALDIĞIN_AIzaSy_ILE_BAŞLAYAN_ANAHTARI_YAZ";
+
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
-        "01": "Osmanlı İmparatorluğu (Ottoman Empire)", "02": "Büyük Britanya (Great Britain)", "03": "Fransa (France)",
-        "04": "Rusya (Russia)", "05": "Avusturya (Austria)", "06": "Prusya (Prussia)", "07": "İspanya (Spain)"
+        "01": "Osmanlı İmparatorluğu", "02": "Büyük Britanya", "03": "Fransa",
+        "04": "Rusya", "05": "Avusturya", "06": "Prusya", "07": "İspanya"
     },
     game_1914: {
-        "01": "Osmanlı İmparatorluğu (Ottoman Empire)", "02": "Alman İmparatorluğu (German Empire)",
-        "03": "Avusturya-Macaristan İmparatorluğu", "05": "Büyük Britanya (United Kingdom)"
+        "01": "Osmanlı İmparatorluğu", "02": "Alman İmparatorluğu",
+        "03": "Avusturya-Macaristan", "05": "Büyük Britanya"
     }
 };
 
@@ -20,14 +23,12 @@ const diller = {
         welcome: "✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.",
         lblOpenFile: "📂 Dosya Seç / Open File",
         lblDec: "Sayı / Dec...",
-        hexPlaceholder: "Modlamaya başlamak için yukarıdan bir dosya seçiniz...",
         needFile: "⚙️ Bu hex dizilimini aramak için öncelikle yukarıdan bir dosya yüklemelisiniz.",
         found: function(sayi, indeks) { return `🎯 <b>Dizilim Bulundu!</b><br>Eşleşme Sayısı: <b>${sayi}</b><br>İlk İndeks: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" dizilimi dosyada bulunamadı.`; },
         systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver.",
-        offlineAi: "🤖 Sunucu şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyiniz.",
-        promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; },
-        resetMsg: "🔮 Hafıza sıfırlandı."
+        offlineAi: "🤖 Bağlantı hatası. Lütfen API anahtarınızı kontrol edin.",
+        promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; }
     },
     en: {
         placeholder: "Ask something...",
@@ -35,14 +36,12 @@ const diller = {
         welcome: "✨ EW6 Assistant active.",
         lblOpenFile: "📂 Open File",
         lblDec: "Number / Dec...",
-        hexPlaceholder: "Select a file...",
         needFile: "⚙️ Please upload a file first.",
         found: function(sayi, indeks) { return `🎯 Found <b>${sayi}</b> times.<br>First Index: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" not found.`; },
         systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief.",
-        offlineAi: "🤖 Server busy. Try again.",
-        promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex:`; },
-        resetMsg: "🔮 Memory reset."
+        offlineAi: "🤖 Connection error. Please check your API key.",
+        promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex:`; }
     }
 };
 
@@ -56,7 +55,6 @@ function dilDegistir() {
     document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
-    document.getElementById('welcomeMsg').innerHTML = diller[mevcutDil].welcome;
 }
 
 async function aiAnalizEt() {
@@ -114,44 +112,28 @@ async function aiAnalizEt() {
         return;
     }
 
-    // API Çağrısı (Gelişmiş Model ve Hata Tolerans Havuzu)
-    sohbetGecmisi.push({"role": "user", "content": girdi});
-    let modelHavuzu = [
-        "google/gemini-2.5-flash:free",
-        "google/gemini-2.5-pro:free",
-        "meta-llama/llama-3.1-8b-instruct:free"
-    ];
-    let basarili = false;
+    // Doğrudan Resmi Google Gemini API Bağlantısı
+    try {
+        let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        
+        let response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                "contents": [{ "parts": [{ "text": diller[mevcutDil].systemPrompt + "\n Kullanıcı Sorusu: " + girdi }] }]
+            })
+        });
 
-    for (let aktifModel of modelHavuzu) {
-        try {
-            let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer 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"
-                },
-                body: JSON.stringify({
-                    "model": aktifModel, 
-                    "messages": [{ "role": "system", "content": diller[mevcutDil].systemPrompt }, ...sohbetGecmisi]
-                })
-            });
-            
-            if (!response.ok) throw new Error("API Hatası");
-            
-            let data = await response.json();
-            if (data.choices && data.choices[0].message) {
-                let aiCevap = data.choices[0].message.content.trim();
-                document.getElementById(aiResponseId).innerHTML = aiCevap;
-                sohbetGecmisi.push({"role": "assistant", "content": aiCevap});
-                basarili = true; 
-                break;
-            }
-        } catch (e) { 
-            console.log(`${aktifModel} bağlantısı başarısız, sonraki modele geçiliyor...`); 
+        let data = await response.json();
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            let aiCevap = data.candidates[0].content.parts[0].text.trim();
+            document.getElementById(aiResponseId).innerHTML = aiCevap;
+        } else {
+            throw new Error();
         }
+    } catch (e) {
+        document.getElementById(aiResponseId).innerHTML = diller[mevcutDil].offlineAi;
     }
-    if(!basarili) document.getElementById(aiResponseId).innerHTML = diller[mevcutDil].offlineAi;
 }
 
 function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
