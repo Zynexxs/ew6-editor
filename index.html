@@ -2,54 +2,49 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EW6 Hex Editor AI PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EW6 Hex Editor AI</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div class="header-panel">
-        <div class="header-title">
-            <h1>EW6 Hex Editor AI</h1>
-            <p>Created by Zynex & Gemini 2.5</p>
-        </div>
-        <button class="btn-lang" onclick="dilDegistir()">TR / EN</button>
-    </div>
-
-    <div class="editor-container">
-        
-        <div class="chat-section">
-            <div class="chat-box" id="chatBox">
-                <div class="message ai-message" id="welcomeMsg">
-                    ✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.
-                </div>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="brand">
+                <h3>EW6 Hex Editor AI</h3>
+                <span class="author">Created by Zynex</span>
             </div>
-            <div class="input-area">
-                <input type="text" id="input" placeholder="Bir şeyler sorun veya hex dizilimi girin..." onkeypress="if(event.key === 'Enter') aiAnalizEt()">
-                <button class="btn-action" onclick="aiAnalizEt()">➔</button>
+            <div class="header-btns">
+                <button class="lang-btn" onclick="dilDegistir()">🌐 TR/EN</button>
+                <button class="new-chat-btn" onclick="temizleSohbet()">🔄</button>
+            </div>
+        </header>
+
+        <div class="quick-converter">
+            <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
+            <div class="convert-results">
+                <span id="lblHex">Hex: <strong id="hexResult">0000</strong></span>
+                <span id="lblGame">Game: <strong id="gameHexResult">00 00</strong></span>
             </div>
         </div>
 
-        <div class="tools-section">
-            
-            <div class="converter-box">
-                <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
-                <div>
-                    <div class="result-text">Hex: <span id="hexResult">0000</span></div>
-                    <div class="result-text" style="color:#ffcc00">Game: <span id="gameHexResult">00 00</span></div>
-                </div>
-                <button class="btn-lang" style="margin-left:auto; background:#c62828" onclick="temizleChatGPT()">C</button>
+        <div class="messages-container" id="chatBox"></div>
+
+        <div class="input-wrapper">
+            <div class="input-container">
+                <input type="text" id="input" onkeypress="if(event.key === 'Enter') aiAnalizEt()">
+                <button class="gemini-send-btn" onclick="aiAnalizEt()">➔</button>
             </div>
+        </div>
 
-            <label for="fileInput" class="file-upload-btn" id="lblOpenFile">📂 Dosya Seç / Open File</label>
-            <input type="file" id="fileInput">
+        <div class="file-panel">
+            <label for="fileInput" class="file-label" id="lblOpenFile">📂 Dosya Seç / Open File</label>
+            <input type="file" id="fileInput" accept=".bin,.sav,.dat,.*">
+            <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 İndir / Download</button>
+        </div>
 
-            <div class="hex-viewer" id="hexViewer">
-                <div id="hexPlaceholder" class="placeholder-text">Modlamaya başlamak için yukarıdan bir dosya seçiniz...</div>
-                <div id="hexEditorGrid" style="display:none; flex-direction:column;"></div>
-            </div>
-
-            <button class="btn-action" id="downloadBtn" style="display:none; background:#0091ea;" onclick="downloadModdedFile()">💾 Değişiklikleri Kaydet ve İndir</button>
+        <div class="hex-viewer-container">
+            <div id="hexPlaceholder" class="hex-empty-msg"></div>
+            <div id="hexEditorGrid" class="hex-editor-grid" style="display: none;"></div>
         </div>
     </div>
 
