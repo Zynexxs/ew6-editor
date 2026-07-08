@@ -1,277 +1,233 @@
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: #090a0f;
-    color: #e2e4e9;
-    height: 100vh;
+    background-color: #0f0c1b;
+    color: #e2e1e9;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    padding: 10px;
 }
 
 .app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
     width: 100%;
     max-width: 500px;
-    margin: 0 auto;
-    background: #111218;
+    background: #16122c;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid #251f47;
 }
 
-/* Üst Bar Tasarımı */
-.main-header {
-    background: #171821;
-    padding: 15px;
+/* Header */
+.header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #222433;
+    margin-bottom: 15px;
 }
 
-.brand h3 {
-    font-size: 16px;
+.title-section h1 {
+    font-size: 18px;
     color: #a370f7;
-    font-weight: 700;
 }
 
-.author {
+.title-section p {
     font-size: 11px;
-    color: #6c7293;
-    display: block;
-    font-weight: 500;
-    margin-top: 2px;
+    color: #7d789a;
 }
 
-.header-btns {
-    display: flex;
-    gap: 8px;
-}
-
-.lang-btn, .new-chat-btn {
-    background: #222433;
+.control-buttons button {
+    background: #251f47;
+    color: #fff;
     border: none;
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: 0.2s;
+    font-weight: bold;
+    font-size: 12px;
+    margin-left: 5px;
 }
 
-.lang-btn:hover, .new-chat-btn:hover {
-    background: #2e3147;
+.control-buttons button:hover {
+    background: #362d66;
 }
 
-/* Çevirici Panel */
-.quick-converter {
-    background: #171821;
-    padding: 12px 15px;
+/* Dönüştürücü */
+.converter-box {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid #222433;
-}
-
-.quick-converter input {
-    flex: 1;
-    background: #090a0f;
-    border: 1px solid #222433;
-    color: #fff;
+    background: #1f1a3a;
     padding: 10px;
     border-radius: 10px;
-    font-size: 13px;
+    margin-bottom: 15px;
+    align-items: center;
+    gap: 10px;
+}
+
+#decInput {
+    flex: 1;
+    background: #0f0c1b;
+    border: 1px solid #362d66;
+    color: #fff;
+    padding: 6px;
+    border-radius: 6px;
     outline: none;
 }
 
-.convert-results {
+.converter-results {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 12px;
-    color: #969cb2;
+    gap: 15px;
+    font-size: 13px;
 }
 
-.convert-results strong {
+.converter-results strong {
     color: #a370f7;
-    font-family: 'JetBrains Mono', monospace;
 }
 
-/* Sohbet Akışı */
-.messages-container {
-    flex: 1;
-    padding: 15px;
+/* Chat Alanı */
+.chat-container {
+    background: #1f1a3a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 1px solid #251f47;
+}
+
+.chat-box {
+    height: 250px;
+    padding: 10px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background: #111218;
+    gap: 8px;
 }
 
 .message {
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
     max-width: 85%;
-    padding: 12px 16px;
-    border-radius: 16px;
-    font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .ai-message {
-    background: #171821;
-    color: #e2e4e9;
+    background: #251f47;
+    color: #e2e1e9;
     align-self: flex-start;
-    border-bottom-left-radius: 4px;
 }
 
 .user-message {
     background: #a370f7;
     color: #fff;
     align-self: flex-end;
-    border-bottom-right-radius: 4px;
 }
 
-/* Gemini Tarzı Yuvarlatılmış Input Barı */
-.input-wrapper {
-    padding: 12px 15px;
-    background: #171821;
-}
-
-.input-container {
+.input-area {
     display: flex;
-    background: #090a0f;
-    border: 1px solid #222433;
-    border-radius: 28px;
-    padding: 6px 10px 6px 20px;
-    align-items: center;
+    border-top: 1px solid #251f47;
+    background: #16122c;
 }
 
-.input-container input {
+.input-area input {
     flex: 1;
     background: transparent;
     border: none;
+    padding: 12px;
     color: #fff;
-    font-size: 14px;
     outline: none;
 }
 
-/* Gemini Tarzı Dairesel Gönderme Butonu */
-.gemini-send-btn {
-    background: #a370f7;
-    color: #fff;
+.input-area button {
+    background: transparent;
     border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: #a370f7;
+    font-size: 18px;
+    padding: 0 15px;
     cursor: pointer;
-    transition: 0.2s ease;
 }
 
-.gemini-send-btn:hover {
-    background: #b485ff;
-    transform: scale(1.05);
-}
-
-.gemini-send-btn svg {
-    margin-left: 2px;
-}
-
-/* Dosya Paneli */
-.file-panel {
-    background: #171821;
-    padding: 12px 15px;
-    display: flex;
-    gap: 10px;
-    border-top: 1px solid #222433;
-}
-
-#fileInput { display: none; }
-
-.file-label, #downloadBtn {
-    flex: 1;
-    background: #222433;
-    color: #fff;
-    padding: 12px;
+/* Dosya ve Hex Editör Alanı */
+.file-section {
+    background: #1f1a3a;
+    padding: 15px;
     border-radius: 12px;
     text-align: center;
-    font-size: 13px;
+}
+
+.file-label {
+    display: block;
+    background: #2b2454;
+    padding: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: 600;
-    border: none;
+    font-weight: bold;
+    font-size: 14px;
     transition: 0.2s;
 }
 
-#downloadBtn {
-    background: #a370f7;
+.file-label:hover {
+    background: #362d66;
 }
 
-/* Profesyonel Adresli Hex Görünümü */
-.hex-viewer-container {
-    height: 220px;
-    padding: 10px;
-    background: #090a0f;
+.hex-placeholder {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #7d789a;
+}
+
+.hex-grid {
+    margin-top: 15px;
+    max-height: 200px;
     overflow-y: auto;
-    border-top: 1px solid #222433;
-}
-
-.hex-empty-msg {
-    color: #6c7293;
-    font-size: 13px;
-    text-align: center;
-    padding-top: 80px;
-}
-
-.hex-editor-grid {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    background: #0f0c1b;
+    padding: 8px;
+    border-radius: 6px;
+    text-align: left;
 }
 
 .hex-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 2px 4px;
-    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
 }
 
 .hex-offset {
-    color: #6c7293;
-    font-weight: 700;
-    min-width: 75px;
-    user-select: none;
+    color: #615b86;
+    margin-right: 15px;
 }
 
 .hex-bytes {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    display: flex;
     gap: 6px;
-    flex: 1;
 }
 
 .hex-byte-btn {
-    background: #171821;
-    color: #e2e4e9;
-    padding: 6px 0;
-    border-radius: 6px;
-    text-align: center;
     cursor: pointer;
-    border: 1px solid #222433;
-    transition: 0.1s;
-    font-weight: 500;
+    color: #d2cbfa;
+    padding: 0 2px;
 }
 
 .hex-byte-btn:hover {
     background: #a370f7;
     color: #fff;
-    border-color: #a370f7;
+    border-radius: 3px;
+}
+
+.download-btn {
+    width: 100%;
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 12px;
+    cursor: pointer;
+    font-weight: bold;
 }
