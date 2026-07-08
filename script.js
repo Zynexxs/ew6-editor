@@ -1,10 +1,12 @@
 let mevcutDil = "tr";
 let fileData = null;
-let secilenIndeksler = []; // Çoklu seçim için tıklanan indeksleri tutar
 
-// Gemini API Anahtarın doğrudan buraya gömüldü kral
+// Buraya Google AI Studio'dan aldığın ücretsiz API anahtarını yapıştır kral
+// NOT: AI Studio artık "AQ.Ab..." formatında anahtar veriyor, bu yeni format
+// URL parametresi yerine header ile gönderiliyor (aşağıdaki fetch isteğine bak).
 const GEMINI_API_KEY = "AQ.Ab8RN6KVfdbzA--QAOOGUidgVx32_tXtPaWKjxIRZe1xtyLlvg"; 
 
+// Ülke Kodları Bilgi Hafızası
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
         "01": "Osmanlı İmparatorluğu (Ottoman Empire)", "02": "Büyük Britanya (Great Britain)",
@@ -30,12 +32,10 @@ const diller = {
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Hex araması yapabilmek için önce aşağıdan bir dosya yüklemelisin kral.",
         placeholderText: "Modlamak istediğiniz EW6 dosyasını seçin...",
-        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b> (O bölgeye odaklanıldı).`,
+        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b>.`,
         notFound: (girdi) => `❌ "${girdi}" dizilimi dosyada bulunamadı.`,
         promptPrompt: (indeks, mevcut) => `Adres: ${indeks}\nMevcut Hex: ${mevcut}\nYeni Hex:`,
-        aiLoading: "🤖 Yapay Zeka düşünüyor...",
-        selectedInfo: (sayi) => `Seçilen Byte Sayısı: ${sayi}`,
-        aiPrompt: "Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Kullanıcıya her zaman Türkçe dilinde, samimi bir dille, 'kral' diye hitap ederek kısa ve öz cevap ver."
+        aiLoading: "🤖 Yapay Zeka düşünüyor..."
     },
     en: {
         placeholder: "Enter hex sequence or ask AI anything...",
@@ -44,12 +44,10 @@ const diller = {
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first to search.",
         placeholderText: "Please select an EW6 file to start...",
-        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b> (Scrolled to view).`,
+        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b>.`,
         notFound: (girdi) => `❌ "${girdi}" sequence not found in file.`,
         promptPrompt: (indeks, mevcut) => `Index: ${indeks}\nCurrent Hex: ${mevcut}\nNew Hex:`,
-        aiLoading: "🤖 AI is thinking...",
-        selectedInfo: (sayi) => `Selected Bytes: ${sayi}`,
-        aiPrompt: "You are the European War 6 (EW6) game and Hex editor assistant. Always reply to the user in English, with a friendly tone, calling them 'king', and keep your answers brief and concise."
+        aiLoading: "🤖 AI is thinking..."
     }
 };
 
@@ -57,7 +55,6 @@ function uiGuncelle() {
     document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
-    document.getElementById('selectedCountInfo').innerText = diller[mevcutDil].selectedInfo(secilenIndeksler.length);
     if(!fileData) {
         document.getElementById('hexPlaceholder').innerText = diller[mevcutDil].placeholderText;
     }
@@ -74,14 +71,16 @@ async function aiAnalizEt() {
     let chatBox = document.getElementById('chatBox');
     if(!girdi) return;
 
+    // Kullanıcı mesajını ekrana bas
     chatBox.innerHTML += `<div class="message user-message">${girdi}</div>`;
     document.getElementById('input').value = ''; 
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // "arama yap", "bul" gibi ekstra kelimeleri temizleyip sadece saf hex kodunu filtreleme
-    let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/\s+/g, '').trim();
+    // Girdiyi Hex araması için temizle
+    let temizHex = girdi.replace(/\s+/g, '').toUpperCase();
     let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2;
 
+    // Eğer girdi geçerli bir HEX koduysa, dosya aramasına yönlendir
     if (hexValid) {
         if (!fileData) { 
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].needFile}</div>`;
@@ -113,33 +112,29 @@ async function aiAnalizEt() {
                 if(SYSTEM_KNOWLEDGE.game_1914[temizHex]) responseHTML += `<br>• 1914: ${SYSTEM_KNOWLEDGE.game_1914[temizHex]}`;
             }
             chatBox.innerHTML += `<div class="message ai-message">${responseHTML}</div>`;
-            
-            // Grid'i render et ve bulunan ilk byte bloğunun üzerine otomatik kaydır (Yönlendir)
             renderHexView(bulunanIndeksler, arananByteDizisi.length);
-            setTimeout(() => {
-                let hedefByte = document.querySelector('.highlighted-hex');
-                if (hedefByte) {
-                    hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 200);
-
         } else {
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].notFound(girdi)}</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } 
+    // Eğer girdi normal bir metinse (selam, soru vb.), CANLI YAPAY ZEKAYA BAĞLAN
     else {
+        // Yükleniyor mesajı ekle
         let loadingId = "loading_" + Date.now();
         chatBox.innerHTML += `<div class="message ai-message" id="${loadingId}">${diller[mevcutDil].aiLoading}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
         if (!GEMINI_API_KEY || GEMINI_API_KEY.length < 10) {
-            document.getElementById(loadingId).innerHTML = "⚠️ <b>Hata:</b> Geçersiz API anahtarı.";
+            document.getElementById(loadingId).innerHTML = "⚠️ <b>Hata:</b> Yapay zekanın çalışması için script.js içindeki GEMINI_API_KEY alanına geçerli bir anahtar girmelisin kral.";
             return;
         }
 
         try {
-            // "AQ." Tipi anahtarlar için header korumalı ve dil destekli fetch isteği
+            // Canlı Google Gemini API İsteği
+            // ÖNEMLİ: Yeni "AQ." formatındaki anahtarlar URL'deki ?key= parametresiyle DEĞİL,
+            // x-goog-api-key header'ıyla gönderilmeli. Model adı da güncel modele çekildi
+            // çünkü gemini-1.5-flash artık kapatıldı ve çalışmıyor.
             const response = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
                 {
@@ -149,25 +144,31 @@ async function aiAnalizEt() {
                         "x-goog-api-key": GEMINI_API_KEY
                     },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `${diller[mevcutDil].aiPrompt} Kullanıcının mesajı: ${girdi}` }] }]
+                        contents: [{ parts: [{ text: `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Kullanıcıya samimi bir dille, 'kral' diye hitap ederek kısa ve öz cevap ver. Kullanıcının mesajı: ${girdi}` }] }]
                     })
                 }
             );
 
             const data = await response.json();
 
+            // Google başarısız isteklerde de 200 dışı bir status ile birlikte
+            // data.error içinde gerçek sebebi döner. Onu yakalayıp gösteriyoruz.
             if (!response.ok) {
                 const mesaj = data?.error?.message || `HTTP ${response.status}`;
                 throw new Error(mesaj);
             }
 
             let aiCevap = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!aiCevap) throw new Error("Yapay zeka boş cevap döndü.");
 
+            if (!aiCevap) {
+                throw new Error("Yapay zeka boş cevap döndü (muhtemelen içerik filtrelendi).");
+            }
+
+            // Yükleniyor yazısını gerçek yapay zeka cevabıyla değiştir
             document.getElementById(loadingId).innerText = aiCevap;
 
         } catch (error) {
-            console.error("Gemini Hatası:", error);
+            console.error("Gemini API hatası:", error);
             document.getElementById(loadingId).innerText = "❌ Yapay zeka hatası: " + error.message;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -179,7 +180,6 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
     const grid = document.getElementById('hexEditorGrid');
     if(!fileData) return;
     placeholder.style.display = "none"; grid.style.display = "flex"; grid.innerHTML = "";
-    document.getElementById('manualMenu').style.display = "block"; 
 
     for (let i = 0; i < fileData.length; i += 8) {
         let rowDiv = document.createElement('div'); rowDiv.className = 'hex-row';
@@ -192,71 +192,16 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
             let currentIndex = i + j; if (currentIndex >= fileData.length) break;
             let byte = fileData[currentIndex];
             let byteBtn = document.createElement('span'); byteBtn.className = 'hex-byte';
-            byteBtn.id = `byte_${currentIndex}`;
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
-            
-            // Byte'a tıklandığında Çoklu Seçim Moduna alır
-            byteBtn.setAttribute('onclick', `toggleByteSelection(${currentIndex})`);
+            byteBtn.setAttribute('onclick', `editByte(${currentIndex})`);
 
-            // Arama sonuçlarında vurgulanacak alanlar
             if (vurgulanacakIndeksler.some(b => currentIndex >= b && currentIndex < b + arananUzunluk)) {
-                byteBtn.classList.add('highlighted-hex');
                 byteBtn.style.background = "#a370f7"; byteBtn.style.color = "#fff";
-            }
-            // Önceden seçilmiş alanları renklendir
-            if (secilenIndeksler.includes(currentIndex)) {
-                byteBtn.style.border = "2px solid #ff4757";
-                byteBtn.style.background = "#2f3542";
-                byteBtn.style.color = "#fff";
             }
             bytesDiv.appendChild(byteBtn);
         }
         rowDiv.appendChild(bytesDiv); grid.appendChild(rowDiv);
     }
-}
-
-function toggleByteSelection(index) {
-    let byteElement = document.getElementById(`byte_${index}`);
-    let idx = secilenIndeksler.indexOf(index);
-    
-    if (idx > -1) {
-        secilenIndeksler.splice(idx, 1);
-        byteElement.style.border = "none";
-        byteElement.style.background = "";
-        byteElement.style.color = "";
-    } else {
-        secilenIndeksler.push(index);
-        byteElement.style.border = "2px solid #ff4757";
-        byteElement.style.background = "#2f3542";
-        byteElement.style.color = "#fff";
-    }
-    document.getElementById('selectedCountInfo').innerText = diller[mevcutDil].selectedInfo(secilenIndeksler.length);
-}
-
-function topluDegistir() {
-    let yeniDeger = document.getElementById('batchHexInput').value.trim().toUpperCase();
-    if (yeniDeger.length !== 2 || !/^[0-9A-F]{2}$/.test(yeniDeger)) {
-        alert("Lütfen 2 haneli geçerli bir hex girin kral! (Örn: FF)");
-        return;
-    }
-    if (secilenIndeksler.length === 0) return;
-    
-    secilenIndeksler.forEach(idx => { fileData[idx] = parseInt(yeniDeger, 16); });
-    alert(`${secilenIndeksler.length} adet byte başarıyla değiştirildi!`);
-    secimleriTemizle();
-}
-
-function topluSil() {
-    if (secilenIndeksler.length === 0) return;
-    secilenIndeksler.forEach(idx => { fileData[idx] = 0; });
-    alert(`${secilenIndeksler.length} adet byte sıfırlandı (00)!`);
-    secimleriTemizle();
-}
-
-function secimleriTemizle() {
-    secilenIndeksler = [];
-    renderHexView();
-    uiGuncelle();
 }
 
 function decToHexConvert() {
@@ -269,6 +214,14 @@ function decToHexConvert() {
 
 function temizleSohbet() {
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
+}
+
+function editByte(index) {
+    let currentHex = fileData[index].toString(16).toUpperCase().padStart(2, '0');
+    let newValue = prompt(diller[mevcutDil].promptPrompt(index, currentHex));
+    if (newValue !== null && newValue.trim().length === 2) {
+        fileData[index] = parseInt(newValue.trim(), 16); renderHexView();
+    }
 }
 
 function downloadModdedFile() {
@@ -290,4 +243,3 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-                                                                                        
