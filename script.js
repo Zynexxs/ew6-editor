@@ -114,9 +114,13 @@ async function aiAnalizEt() {
         return;
     }
 
-    // API Çağrısı (Model Havuzu Koruma Kalkanlı)
+    // API Çağrısı (Gelişmiş Model ve Hata Tolerans Havuzu)
     sohbetGecmisi.push({"role": "user", "content": girdi});
-    let modelHavuzu = ["google/gemini-2.5-flash:free", "meta-llama/llama-3.1-8b-instruct:free"];
+    let modelHavuzu = [
+        "google/gemini-2.5-flash:free",
+        "google/gemini-2.5-pro:free",
+        "meta-llama/llama-3.1-8b-instruct:free"
+    ];
     let basarili = false;
 
     for (let aktifModel of modelHavuzu) {
@@ -125,23 +129,27 @@ async function aiAnalizEt() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": "Bearer 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",
-                    "HTTP-Referer": "https://localhost",
-                    "X-Title": "EW6 Local PRO"
+                    "Authorization": "Bearer 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"
                 },
                 body: JSON.stringify({
                     "model": aktifModel, 
                     "messages": [{ "role": "system", "content": diller[mevcutDil].systemPrompt }, ...sohbetGecmisi]
                 })
             });
+            
+            if (!response.ok) throw new Error("API Hatası");
+            
             let data = await response.json();
             if (data.choices && data.choices[0].message) {
                 let aiCevap = data.choices[0].message.content.trim();
                 document.getElementById(aiResponseId).innerHTML = aiCevap;
                 sohbetGecmisi.push({"role": "assistant", "content": aiCevap});
-                basarili = true; break;
+                basarili = true; 
+                break;
             }
-        } catch (e) { console.log("Yedek modele geçiliyor..."); }
+        } catch (e) { 
+            console.log(`${aktifModel} bağlantısı başarısız, sonraki modele geçiliyor...`); 
+        }
     }
     if(!basarili) document.getElementById(aiResponseId).innerHTML = diller[mevcutDil].offlineAi;
 }
@@ -167,7 +175,7 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
             byteBtn.setAttribute('onclick', `editByte(${currentIndex})`);
 
             if (vurgulanacakIndeksler.some(b => currentIndex >= b && currentIndex < b + arananUzunluk)) {
-                byteBtn.style.background = "#ffcc00"; byteBtn.style.color = "#000";
+                byteBtn.style.background = "#a370f7"; byteBtn.style.color = "#fff";
             }
             bytesDiv.appendChild(byteBtn);
         }
@@ -175,7 +183,6 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
     }
 }
 
-// Sayfa yüklendiğinde dosya dinleyicisini ekle
 document.addEventListener("DOMContentLoaded", () => {
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
@@ -200,7 +207,7 @@ function decToHexConvert() {
 }
 
 function temizleChatGPT() {
-    document.getElementById('chatBox').innerHTML = "";
+    document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
     sohbetGecmisi = [];
 }
 
