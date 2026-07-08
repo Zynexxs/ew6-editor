@@ -26,21 +26,21 @@ const diller = {
         needFile: "⚙️ Bu hex dizilimini aramak için öncelikle yukarıdan bir dosya yüklemelisiniz.",
         found: function(sayi, indeks) { return `🎯 <b>Dizilim Bulundu!</b><br>Eşleşme Sayısı: <b>${sayi}</b><br>İlk İndeks: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" dizilimi dosyada bulunamadı.`; },
-        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver. Kullanıcı hangi dilde yazarsa o dilde cevap ver.",
-        offlineAi: "🤖 Google API Bağlantı Hatası. Sayfayı yenileyip tekrar deneyin.",
+        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver. Her zaman Türkçe cevap ver.",
+        offlineAi: "🤖 Google API Bağlantı Hatası. Lütfen anahtarınızı veya internetinizi kontrol edin.",
         promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; }
     },
     en: {
         placeholder: "Ask something or enter hex sequence...",
         thinking: "✨ Gemini analyzing...",
-        welcome: "✨ EW6 1804 & 1914 Modding Assistant is active. You can upload your file and search for hex sequences or ask questions about country codes.",
+        welcome: "✨ EW6 1804 & 1914 Modding Assistant is active. Upload a file and search for hex sequences or ask about country codes.",
         lblOpenFile: "📂 Open File / Dosya Seç",
         lblDec: "Number / Dec...",
-        needFile: "⚙️ Please upload a file from above first to search this hex sequence.",
-        found: function(sayi, indeks) { return `🎯 <b>Sequence Found!</b><br>Match Count: <b>${sayi}</b><br>First Index: <b>${indeks}</b>.`; },
-        notFound: function(girdi) { return `❌ "${girdi}" sequence not found in the file.`; },
-        systemPrompt: "You are an expert European War 6 modding assistant. Give brief, clear, and informative answers. Always reply in English.",
-        offlineAi: "🤖 Google API Connection Error. Please refresh the page and try again.",
+        needFile: "⚙️ Please upload a file first to search this hex sequence.",
+        found: function(sayi, indeks) { return `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Index: <b>${indeks}</b>.`; },
+        notFound: function(girdi) { return `❌ "${girdi}" sequence not found in file.`; },
+        systemPrompt: "You are an expert European War 6 modding assistant. Keep answers brief and clear. Always reply in English.",
+        offlineAi: "🤖 Google API Connection Error. Please check your key or connection.",
         promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex (2 characters):`; }
     }
 };
@@ -52,11 +52,13 @@ const selamlar = {
 
 function dilDegistir() {
     mevcutDil = mevcutDil === "tr" ? "en" : "tr";
+    
+    // Arayüz elemanlarını güncelle
     document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
     
-    // Sohbet kutusundaki karşılama mesajını da dile göre günceller
+    // Karşılama mesajını dile göre sıfırla
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
 }
 
@@ -115,13 +117,13 @@ async function aiAnalizEt() {
     }
 
     try {
-        let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+        // Parametrik URL doğrulaması kullanarak istek gönderimi
+        let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
         let response = await fetch(url, {
             method: "POST",
             headers: { 
-                "Content-Type": "application/json",
-                "X-Goog-Api-Key": GEMINI_API_KEY
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 "contents": [{
@@ -193,7 +195,7 @@ function decToHexConvert() {
     document.getElementById('gameHexResult').innerText = hex.substring(2,4) + " " + hex.substring(0,2);
 }
 
-function temizleChatGPT() {
+function temizleSohbet() {
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
     sohbetGecmisi = [];
 }
@@ -209,4 +211,4 @@ function downloadModdedFile() {
     const blob = new Blob([fileData], { type: "application/octet-stream" });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
     link.download = "modlu_dosya.bin"; link.click();
-}
+            }
