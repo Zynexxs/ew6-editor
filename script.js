@@ -1,10 +1,9 @@
-
 let mevcutDil = "tr";
 let sohbetGecmisi = [];
 let fileData = null;
 
-// Google AI Studio'dan aldığın güncel API anahtarı
-const GEMINI_API_KEY = "AQ.Ab8RN6I4JAigLICjgAm6kAJGzjtxGfUouosW12bYbk4Ce1Hu5A";
+// Hugging Face üzerinden aldığın güncel API anahtarı
+const HF_API_KEY = "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";
 
 const SYSTEM_KNOWLEDGE = {
     game_1804: {
@@ -20,28 +19,28 @@ const SYSTEM_KNOWLEDGE = {
 const diller = {
     tr: {
         placeholder: "Bir şeyler sorun veya hex dizilimi girin...",
-        thinking: "✨ Gemini analiz ediyor...",
+        thinking: "✨ Yapay zeka analiz ediyor...",
         welcome: "✨ EW6 1804 & 1914 Modding Assistant aktif. Dosyanızı yükleyip hex dizilimlerini aratabilir veya ülke kodları hakkında sorularınızı yöneltebilirsiniz.",
         lblOpenFile: "📂 Dosya Seç / Open File",
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Bu hex dizilimini aramak için öncelikle yukarıdan bir dosya yüklemelisiniz.",
         found: function(sayi, indeks) { return `🎯 <b>Dizilim Bulundu!</b><br>Eşleşme Sayısı: <b>${sayi}</b><br>İlk İndeks: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" dizilimi dosyada bulunamadı.`; },
-        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Kısa, net ve bilgilendirici cevaplar ver.",
-        offlineAi: "🤖 Bağlantı hatası. Lütfen API anahtarınızı kontrol edin.",
+        systemPrompt: "Sen European War 6 uzmanı bir modlama asistanısın. Türkçe, kısa, net ve bilgilendirici cevaplar ver.",
+        offlineAi: "🤖 Bağlantı hatası. Lütfen daha sonra tekrar deneyin.",
         promptPrompt: function(indeks, mevcut) { return `İndeks: ${indeks}\nMevcut: ${mevcut}\nYeni Hex (2 karakter):`; }
     },
     en: {
         placeholder: "Ask something...",
-        thinking: "✨ Gemini analyzing...",
+        thinking: "✨ AI analyzing...",
         welcome: "✨ EW6 Assistant active.",
         lblOpenFile: "📂 Open File",
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first.",
         found: function(sayi, indeks) { return `🎯 Found <b>${sayi}</b> times.<br>First Index: <b>${indeks}</b>.`; },
         notFound: function(girdi) { return `❌ "${girdi}" not found.`; },
-        systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief.",
-        offlineAi: "🤖 Connection error. Please check your API key.",
+        systemPrompt: "You are an expert EW6 modding assistant. Keep answers brief and in English.",
+        offlineAi: "🤖 Connection error. Please try again later.",
         promptPrompt: function(indeks, mevcut) { return `Index: ${indeks}\nCurrent: ${mevcut}\nNew Hex:`; }
     }
 };
@@ -53,7 +52,7 @@ const selamlar = {
 
 function dilDegistir() {
     mevcutDil = mevcutDil === "tr" ? "en" : "tr";
-    document.getElementById('input').placeholder = diller[mevcutDil].placeholder;
+    document.getElementById('input').placeholder = diller[mevyetDil].placeholder;
     document.getElementById('lblOpenFile').innerText = diller[mevcutDil].lblOpenFile;
     document.getElementById('decInput').placeholder = diller[mevcutDil].lblDec;
 }
@@ -73,7 +72,7 @@ async function aiAnalizEt() {
     let temizGirdi = girdi.toLowerCase().replace(/\s+/g, ' ');
 
     if (selamlar[mevcutDil].includes(temizGirdi)) {
-        document.getElementById(aiResponseId).innerHTML = "🔮 Merhaba! Gemini 2.5 aktif. Bugün hangi hex üzerinde çalışıyoruz?";
+        document.getElementById(aiResponseId).innerHTML = "🔮 Merhaba! Yapay zeka asistanı aktif. Bugün hangi hex üzerinde çalışıyoruz?";
         return;
     }
 
@@ -89,7 +88,6 @@ async function aiAnalizEt() {
         }
     }
 
-    // Saf Hex Arama
     let hexPattern = /^[0-9a-fA-F\s]+$/;
     if (hexPattern.test(temizGirdi) && temizGirdi.length >= 2 && !temizGirdi.includes(' ')) {
         if (!fileData) { document.getElementById(aiResponseId).innerHTML = diller[mevcutDil].needFile; return; }
@@ -113,21 +111,25 @@ async function aiAnalizEt() {
         return;
     }
 
-    // Doğrudan Resmi Google Gemini API Bağlantısı
+    // Hugging Face Üzerinden Sunucusuz Llama-3 Modeli Bağlantısı
     try {
-        let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        
-        let response = await fetch(url, {
+        let response = await fetch("https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Authorization": `Bearer ${HF_API_KEY}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-                "contents": [{ "parts": [{ "text": diller[mevcutDil].systemPrompt + "\n Kullanıcı Sorusu: " + girdi }] }]
+                inputs: `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n${diller[mevcutDil].systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n${girdi}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`,
+                parameters: { max_new_tokens: 250, stop: ["<|eot_id|>"] }
             })
         });
 
         let data = await response.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            let aiCevap = data.candidates[0].content.parts[0].text.trim();
+        if (data && data[0] && data[0].generated_text) {
+            let fullText = data[0].generated_text;
+            let splitText = fullText.split("<|start_header_id|>assistant<|end_header_id|>\n\n");
+            let aiCevap = splitText[splitText.length - 1].replace("<|eot_id|>", "").trim();
             document.getElementById(aiResponseId).innerHTML = aiCevap;
         } else {
             throw new Error();
