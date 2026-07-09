@@ -285,11 +285,66 @@ function renderHexView() {
 }
 
 function manuelAdresDegistir() {
-    let hexStr = document.getElementById('manualHexInput').value.trim();
+    let hexStr = document.getElementById('manualHexInput').value.trim().replace(/\s+/g, '');
     if(!hexStr || !fileData || selectedIndices.length === 0) return;
-    let yeniByteVal = parseInt(hexStr, 16);
-    selectedIndices.forEach(index => { if(index < fileData.length) fileData[index] = yeniByteVal; });
+
+    if (hexStr.length % 2 !== 0) hexStr = "0" + hexStr;
+    if (!/^[0-9A-Fa-f]+$/.test(hexStr)) {
+        acCustomAlert(mevcutDil === "tr" ? "Geçersiz Hex" : "Invalid Hex", mevcutDil === "tr" ? "Lütfen geçerli bir hex değeri gir kral (sadece 0-9, A-F)." : "Please enter a valid hex value, king (only 0-9, A-F).");
+        return;
+    }
+
+    // Girilen hex string'i byte dizisine çevir (artık sınırsız hane destekleniyor)
+    let yeniByteDizisi = [];
+    for (let i = 0; i < hexStr.length; i += 2) {
+        yeniByteDizisi.push(parseInt(hexStr.substr(i, 2), 16));
+    }
+
+    // Seçili adresleri küçükten büyüğe sırala, yazma sırası tutarlı olsun
+    let sirali = [...selectedIndices].sort((a, b) => a - b);
+
+    if (yeniByteDizisi.length === 1) {
+        // Tek byte girildiyse: seçili TÜM adreslere aynı değeri yaz (eski davranış korunuyor)
+        sirali.forEach(index => { if (index < fileData.length) fileData[index] = yeniByteDizisi[0]; });
+    } else {
+        // Birden fazla byte girildiyse: seçili adreslere sırasıyla yaz.
+        // Seçili adres sayısı girilen byte sayısından azsa, taşan byte'lar son seçili adresten sonra göz ardı edilir.
+        // Seçili adres sayısı girilen byte sayısından fazlaysa, son byte fazla adreslere tekrar uygulanır.
+        sirali.forEach((index, i) => {
+            let val = i < yeniByteDizisi.length ? yeniByteDizisi[i] : yeniByteDizisi[yeniByteDizisi.length - 1];
+            if (index < fileData.length) fileData[index] = val;
+        });
+    }
     renderHexView();
+}
+
+function manuelAdresKes() {
+    if(!fileData || selectedIndices.length === 0) {
+        acCustomAlert(mevcutDil === "tr" ? "Seçim Yok" : "No Selection", mevcutDil === "tr" ? "Kesmek için önce byte seçmelisin kral." : "Select a byte to cut first, king.");
+        return;
+    }
+
+    // Büyükten küçüğe sırala: splice yaparken indeks kaymasın diye
+    let sirali = [...selectedIndices].sort((a, b) => b - a);
+    let arr = Array.from(fileData);
+    let kesilenSayi = 0;
+    sirali.forEach(index => {
+        if (index < arr.length) { arr.splice(index, 1); kesilenSayi++; }
+    });
+    fileData = new Uint8Array(arr);
+
+    // Seçimi ve arama vurgularını temizle, dosya boyutu değişti
+    selectedIndices = [];
+    searchHighlights = [];
+    searchLength = 0;
+    document.getElementById('manualAddressInput').value = "";
+    document.getElementById('manualHexInput').value = "";
+    renderHexView();
+
+    acCustomAlert(
+        mevcutDil === "tr" ? "Kesildi ✂️" : "Cut ✂️",
+        mevcutDil === "tr" ? `${kesilenSayi} byte dosyadan tamamen kesildi kral, dosya boyutu küçüldü. Kaydetmeyi unutma!` : `${kesilenSayi} byte(s) were cut from the file entirely, king. File size shrunk. Don't forget to save!`
+    );
 }
 
 function manuelAdresSil() {
