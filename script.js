@@ -7,7 +7,7 @@ let searchLength = 0;
 
 // 🎯 YENİ API ANAHTARIN VE EN STABİL MODEL AYARI TAMAMLANDI
 const GROQ_API_KEY = "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";
-const GROQ_MODEL = "llama3-70b-8192"; // En sorunsuz ve kararlı çalışan Groq modeliyle güncellendi!
+const GROQ_MODEL = "openai/gpt-oss-120b"; // Groq'un güncel desteklenen modeli (llama3-70b-8192 kaldırıldı)
 
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
