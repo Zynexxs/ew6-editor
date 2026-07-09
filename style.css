@@ -126,7 +126,7 @@ body {
 .messages-container {
     flex: 1;
     min-height: 160px;
-    max-height: 200px;
+    max-height: 240px;
     padding: 15px;
     overflow-y: auto;
     background: #090a0f;
@@ -209,7 +209,6 @@ body {
     cursor: pointer;
     font-weight: 600;
     border: none;
-    display: block;
 }
 
 #downloadBtn { background: #27ae60; }
@@ -256,11 +255,10 @@ body {
     margin-bottom: 8px;
 }
 
-/* 🎯 TAŞMALARI ÖNLEYEN VE MOBİLDE ALT SATIRA KAYAN YAPI */
 .menu-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .menu-actions input {
@@ -268,26 +266,27 @@ body {
     border: 1px solid #222433;
     border-radius: 6px;
     color: #fff;
-    padding: 8px;
+    padding: 6px;
     font-size: 12px;
     text-align: center;
     outline: none;
+    min-width: 0;
 }
 
-#manualAddressInput { flex: 1; min-width: 110px; background: #12131a; color: #8f94a8; text-overflow: ellipsis; }
-#manualHexInput { width: 75px; }
+#manualAddressInput { flex: 1 1 auto; min-width: 90px; background: #12131a; color: #8f94a8; text-overflow: ellipsis; }
+#manualHexInput { width: 70px; flex: 0 0 70px; }
 
 .action-btn {
-    flex: 1;
-    min-width: 85px;
+    flex: 1 1 auto;
+    min-width: 100px;
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: bold;
     color: #fff;
-    text-align: center;
+    white-space: nowrap;
 }
 
 .change-btn { background: #27ae60; }
@@ -298,6 +297,7 @@ body {
     padding: 10px;
     background: #090a0f;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .hex-empty-msg {
@@ -351,19 +351,19 @@ body {
     color: #fff !important;
 }
 
-/* 🎯 ALERT MODAL DEĞİŞİKLİKLERİ */
+/* 🎯 YENİ POPUP ALERT STİLLERİ */
 .custom-alert-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(4, 5, 10, 0.85);
+    background: rgba(4, 5, 10, 0.75);
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 99999;
+    z-index: 9999;
     padding: 20px;
 }
 
@@ -372,10 +372,16 @@ body {
     border: 1px solid #eb5757;
     border-radius: 16px;
     width: 100%;
-    max-width: 320px;
+    max-width: 340px;
     padding: 24px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    animation: alertGiris 0.25s ease-out;
+}
+
+@keyframes alertGiris {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .custom-alert-icon {
@@ -407,4 +413,9 @@ body {
     font-weight: bold;
     cursor: pointer;
     width: 100%;
+    transition: background 0.2s;
+}
+
+.custom-alert-btn:hover {
+    background: #cf4040;
 }
