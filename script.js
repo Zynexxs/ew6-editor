@@ -90,7 +90,15 @@ function handleByteClick(index) {
         document.getElementById('manualAddressInput').value = index.toString(16).toUpperCase().padStart(8, '0');
         document.getElementById('manualHexInput').value = fileData[index].toString(16).toUpperCase().padStart(2, '0');
     }
-    renderHexView(); 
+    updateSelectionHighlight();
+}
+
+function updateSelectionHighlight() {
+    document.querySelectorAll('.hex-byte.selected-active').forEach(el => el.classList.remove('selected-active'));
+    selectedIndices.forEach(idx => {
+        const el = document.getElementById('byte-' + idx);
+        if (el) el.classList.add('selected-active');
+    });
 }
 
 function buildAiPrompt(girdi) {
@@ -204,7 +212,7 @@ async function aiAnalizEt() {
 }
 
 function hizliHexAra() {
-    let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase();
+    let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase().replace(/\s+/g, '');
     if(!fileData) return;
     if(!girdi) {
         acCustomAlert("Eksik Girdi", "Lütfen aramak için bir hex dizilimi yazın kral.");
@@ -252,6 +260,7 @@ function renderHexView() {
             let currentIndex = i + j; if (currentIndex >= fileData.length) break;
             let byte = fileData[currentIndex];
             let byteBtn = document.createElement('span'); byteBtn.className = 'hex-byte';
+            byteBtn.id = 'byte-' + currentIndex;
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
             
             byteBtn.setAttribute('onclick', `handleByteClick(${currentIndex})`);
@@ -331,4 +340,3 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-        
