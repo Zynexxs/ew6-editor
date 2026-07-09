@@ -5,9 +5,9 @@ let selectedIndices = [];
 let searchHighlights = [];
 let searchLength = 0;
 
-// 🎯 YENİ API ANAHTARIN BURAYA ENTEGRE EDİLDİ KRAL
+// 🎯 YENİ API ANAHTARIN VE EN STABİL MODEL AYARI TAMAMLANDI
 const GROQ_API_KEY = "Gsk_BHdNcwUhP8uxO5ahrJqYWGdyb3FYgYWSpOwTlps0HQxnD6K5mNCn";
-const GROQ_MODEL = "llama-3.3-70b-versatile"; 
+const GROQ_MODEL = "llama3-70b-8192"; // En sorunsuz ve kararlı çalışan Groq modeliyle güncellendi!
 
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
@@ -181,7 +181,7 @@ async function aiAnalizEt() {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${GROQ_API_KEY}`
+                        "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
                     },
                     body: JSON.stringify({
                         model: GROQ_MODEL,
@@ -331,4 +331,4 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-                            
+        
