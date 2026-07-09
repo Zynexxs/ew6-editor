@@ -5,9 +5,8 @@ let selectedIndices = [];
 let searchHighlights = [];
 let searchLength = 0;
 
-// 🎯 API Anahtarı ve Belirttiğin Yeni Model Ayarı
 const GROQ_API_KEY = "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";
-const GROQ_MODEL = "openai/gpt-oss-120b"; // İstediğin model başarıyla eklendi kral!
+const GROQ_MODEL = "openai/gpt-oss-120b"; 
 
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
@@ -24,7 +23,7 @@ const diller = {
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Hex araması yapabilmek için önce aşağıdan bir dosya yüklemelisin kral.",
         placeholderText: "Modlamak istediğiniz EW6 dosyasını seçin...",
-        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b>.`,
+        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b> bölgesine gidildi.`,
         notFound: (girdi) => `❌ "${girdi}" dizilimi dosyada bulunamadı.`,
         aiLoading: "🤖 Yapay Zeka düşünüyor..."
     },
@@ -35,7 +34,7 @@ const diller = {
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first to search.",
         placeholderText: "Please select an EW6 file to start...",
-        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b>.`,
+        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b> scrolled to region.`,
         notFound: (girdi) => `❌ "${girdi}" sequence not found in file.`,
         aiLoading: "🤖 AI is thinking..."
     }
@@ -103,8 +102,13 @@ function handleByteClick(index) {
 }
 
 function buildAiPrompt(girdi) {
-    let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 1914 Kuralları: 01 Osmanlı İmparatorluğu, 02 Büyük Britanya'dır.`;
-    return `${rules}\n\nKullanıcının Gönderdiği Mesaj: ${girdi}`;
+    if (mevcutDil === "en") {
+        let rules = `You are European War 6 (EW6) game and Hex editor assistant. Reply ONLY in English, use a friendly tone calling the user 'king', keep it short and concise. 1914 Rules: 01 is Ottoman Empire, 02 is Great Britain.`;
+        return `${rules}\n\nUser Message: ${girdi}`;
+    } else {
+        let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 1914 Kuralları: 01 Osmanlı İmparatorluğu, 02 Büyük Britanya'dır.`;
+        return `${rules}\n\nKullanıcının Gönderdiği Mesaj: ${girdi}`;
+    }
 }
 
 function acCustomAlert(baslik, mesaj) {
@@ -117,6 +121,15 @@ function kapatCustomAlert() {
     document.getElementById('customAlertModal').style.display = "none";
 }
 
+function hizadaMerkezle(indeks) {
+    setTimeout(() => {
+        let hedefSatir = document.getElementById(`row-addr-${Math.floor(indeks / 8) * 8}`);
+        if (hedefSatir) {
+            hedefSatir.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 150);
+}
+
 async function aiAnalizEt() {
     let girdi = document.getElementById('input').value.trim();
     let chatBox = document.getElementById('chatBox');
@@ -126,8 +139,8 @@ async function aiAnalizEt() {
     document.getElementById('input').value = ''; 
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    let bulKelimesiVar = girdi.toLowerCase().includes("bul") || girdi.toLowerCase().includes("ara");
-    let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/\s+/g, '').trim();
+    let bulKelimesiVar = girdi.toLowerCase().includes("bul") || girdi.toLowerCase().includes("ara") || girdi.toLowerCase().includes("find") || girdi.toLowerCase().includes("search");
+    let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/FIND/g, '').replace(/SEARCH/g, '').replace(/\s+/g, '').trim();
     
     let sadeceYalinKodMu = (temizHex === "01" || temizHex === "02" || temizHex === "03") && !bulKelimesiVar;
     let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2 && !sadeceYalinKodMu;
@@ -161,9 +174,10 @@ async function aiAnalizEt() {
             searchHighlights = bulunanIndeksler;
             searchLength = arananByteDizisi.length;
             renderHexView();
+            hizadaMerkezle(bulunanIndeksler[0]);
         } else {
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].notFound(girdi)}</div>`;
-            acCustomAlert("Sonuç Bulunamadı", `"${girdi}" dizilimi yüklü dosyada bulunamadı kral.`);
+            acCustomAlert(mevcutDil === "tr" ? "Sonuç Bulunamadı" : "No Results Found", mevcutDil === "tr" ? `"${girdi}" dizilimi dosyada bulunamadı kral.` : `"${girdi}" sequence could not be found, king.`);
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } else {
@@ -190,11 +204,11 @@ async function aiAnalizEt() {
             if (data?.choices?.[0]?.message?.content) {
                 document.getElementById(loadingId).innerHTML = data.choices[0].message.content;
             } else {
-                document.getElementById(loadingId).innerText = "🤖 Yanıt ayrıştırılamadı kral, tekrar dener misin?";
+                document.getElementById(loadingId).innerText = mevcutDil === "tr" ? "🤖 Yanıt ayrıştırılamadı kral, tekrar dener misin?" : "🤖 Could not parse response, try again king?";
             }
 
         } catch (error) {
-            document.getElementById(loadingId).innerText = "❌ Hata: " + error.message;
+            document.getElementById(loadingId).innerText = "❌ Hata/Error: " + error.message;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -202,12 +216,12 @@ async function aiAnalizEt() {
 
 function hizliHexAra() {
     if(!fileData) {
-        acCustomAlert("Dosya Eksik", "Lütfen önce bir btl/bin dosyası yükleyin kral.");
+        acCustomAlert(mevcutDil === "tr" ? "Dosya Eksik" : "File Missing", mevcutDil === "tr" ? "Lütfen önce bir btl/bin dosyası yükleyin kral." : "Please upload a btl/bin file first, king.");
         return;
     }
     let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase().replace(/\s+/g, '');
     if(!girdi) {
-        acCustomAlert("Eksik Girdi", "Lütfen aramak için bir hex dizilimi yazın kral.");
+        acCustomAlert(mevcutDil === "tr" ? "Eksik Girdi" : "Missing Input", mevcutDil === "tr" ? "Lütfen aramak için bir hex dizilimi yazın kral." : "Please type a hex sequence to search, king.");
         return;
     }
     
@@ -231,8 +245,9 @@ function hizliHexAra() {
         searchHighlights = bulunanIndeksler;
         searchLength = arananByteDizisi.length;
         renderHexView();
+        hizadaMerkezle(bulunanIndeksler[0]);
     } else {
-        acCustomAlert("Sonuç Bulunamadı", `"${girdi}" hex kodu bu dosyanın hiçbir adresinde bulunamadı kral.`);
+        acCustomAlert(mevcutDil === "tr" ? "Sonuç Bulunamadı" : "No Results Found", mevcutDil === "tr" ? `"${girdi}" hex kodu bu dosyanın hiçbir adresinde bulunamadı kral.` : `"${girdi}" hex could not be found anywhere, king.`);
     }
 }
 
@@ -244,7 +259,10 @@ function renderHexView() {
     document.getElementById('manualMenu').style.display = "block";
 
     for (let i = 0; i < fileData.length; i += 8) {
-        let rowDiv = document.createElement('div'); rowDiv.className = 'hex-row';
+        let rowDiv = document.createElement('div'); 
+        rowDiv.className = 'hex-row';
+        rowDiv.id = `row-addr-${i}`;
+        
         let addressDiv = document.createElement('div'); addressDiv.className = 'hex-address';
         addressDiv.innerText = i.toString(16).toUpperCase().padStart(8, '0');
         rowDiv.appendChild(addressDiv);
@@ -316,3 +334,4 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+        
