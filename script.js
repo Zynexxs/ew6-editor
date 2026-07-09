@@ -1,10 +1,11 @@
 let mevcutDil = "tr";
 let fileData = null;
+let multiSelectMode = false;
+let selectedIndices = [];
 
 const GROQ_API_KEY = "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";
 const GROQ_MODEL = "llama-3.3-70b-versatile"; 
 
-// Sadece 1914 yılına ait 01 ve 02 kodları kalacak şekilde ayarlandı
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
         "01": "Osmanlı İmparatorluğu (Ottoman Empire)",
@@ -20,9 +21,8 @@ const diller = {
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Hex araması yapabilmek için önce aşağıdan bir dosya yüklemelisin kral.",
         placeholderText: "Modlamak istediğiniz EW6 dosyasını seçin...",
-        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b> (O bölgeye odaklanıldı).`,
+        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b>.`,
         notFound: (girdi) => `❌ "${girdi}" dizilimi dosyada bulunamadı.`,
-        promptPrompt: (indeks, mevcut) => `Adres: ${indeks}\nMevcut Hex: ${mevcut}\nYeni Hex:`,
         aiLoading: "🤖 Yapay Zeka düşünüyor..."
     },
     en: {
@@ -32,9 +32,8 @@ const diller = {
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first to search.",
         placeholderText: "Please select an EW6 file to start...",
-        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b> (Scrolled to view).`,
+        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b>.`,
         notFound: (girdi) => `❌ "${girdi}" sequence not found in file.`,
-        promptPrompt: (indeks, mevcut) => `Index: ${indeks}\nCurrent Hex: ${mevcut}\nNew Hex:`,
         aiLoading: "🤖 AI is thinking..."
     }
 };
@@ -59,7 +58,39 @@ function toggleSearchInput() {
     bar.style.display = bar.style.display === "none" ? "flex" : "none";
 }
 
-// İstediğin bilgileri doğrudan yapay zekanın aklına/bilincine kazıdığımız yer burası kral!
+function toggleMultiSelectMode() {
+    multiSelectMode = !multiSelectMode;
+    let btn = document.getElementById('multiSelectToggle');
+    if(multiSelectMode) {
+        btn.innerText = "🔗 Çoklu Seçim: AÇIK";
+        btn.classList.add('active');
+    } else {
+        btn.innerText = "🔗 Çoklu Seçim: KAPALI";
+        btn.classList.remove('active');
+        selectedIndices = [];
+        document.getElementById('manualAddressInput').value = "";
+        renderHexView();
+    }
+}
+
+function handleByteClick(index) {
+    if (multiSelectMode) {
+        let position = selectedIndices.indexOf(index);
+        if (position > -1) {
+            selectedIndices.splice(position, 1);
+        } else {
+            selectedIndices.push(index);
+        }
+        document.getElementById('manualAddressInput').value = selectedIndices.map(i => i.toString(16).toUpperCase().padStart(8, '0')).join(', ');
+        renderHexView();
+    } else {
+        selectedIndices = [index];
+        document.getElementById('manualAddressInput').value = index.toString(16).toUpperCase().padStart(8, '0');
+        document.getElementById('manualHexInput').value = fileData[index].toString(16).toUpperCase().padStart(2, '0');
+        renderHexView();
+    }
+}
+
 function buildAiPrompt(girdi) {
     let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 
 Arka Plan Bilgi ve Hafıza Kuralları (Sadece 1914 Yılı Geçerlidir):
@@ -82,39 +113,13 @@ async function aiAnalizEt() {
     document.getElementById('input').value = ''; 
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Özel Komut Analizi: Örn "ff 01 ff kodundaki 01'i 02 olarak değiştir"
-    let degistirMatch = girdi.toLowerCase().match(/(?:kodundaki|dizilimindeki)\s+([0-9a-f]{2})\s*(?:'i|'ı|i|ı)?\s+([0-9a-f]{2})\s+olarak\s+değiştir/);
-    
-    // Kullanıcı sadece "01 bul" veya "01 ara" tarzı bir komut mu verdi kontrolü
     let bulKelimesiVar = girdi.toLowerCase().includes("bul") || girdi.toLowerCase().includes("ara");
-
-    // Girdiyi saf hex olarak temizle
     let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/\s+/g, '').trim();
     
-    // Sadece "01" veya "02" gibi yalın soruları Hex motoruna kaptırmayıp yapay zekaya yönlendirmek için kural ekledik kral
-    let sadeceYalinKodMu = (temizHex === "01" || temizHex === "02" || temizHex === "03") && !bulKelimesiVar && !fileData;
+    let sadeceYalinKodMu = (temizHex === "01" || temizHex === "02" || temizHex === "03") && !bulKelimesiVar;
     let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2 && !sadeceYalinKodMu;
 
-    // 1. Durum: Doğrudan Değiştirme Komutu
-    if (degistirMatch && fileData) {
-        let eskiByte = parseInt(degistirMatch[1], 16);
-        let yeniByte = parseInt(degistirMatch[2], 16);
-        let degisenSayac = 0;
-
-        for (let i = 0; i < fileData.length; i++) {
-            if (fileData[i] === eskiByte) {
-                fileData[i] = yeniByte;
-                degisenSayac++;
-            }
-        }
-        chatBox.innerHTML += `<div class="message ai-message">🛠️ Komut uygulandı kral! Dosyadaki tüm <b>${degistirMatch[1].toUpperCase()}</b> kodları <b>${degistirMatch[2].toUpperCase()}</b> olarak değiştirildi. Toplam değiştirilen: ${degisenSayac} adet.</div>`;
-        renderHexView();
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return;
-    }
-
-    // 2. Durum: Hex araması veya "kodunu bul" komutu
-    if (hexValid || (bulKelimesiVar && temizHex.length >= 2)) {
+    if (hexValid) {
         if (!fileData) { 
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].needFile}</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -139,28 +144,16 @@ async function aiAnalizEt() {
 
         if (bulunanIndeksler.length > 0) {
             let responseHTML = `${diller[mevcutDil].found(bulunanIndeksler.length, bulunanIndeksler[0].toString(16).toUpperCase().padStart(8, '0'))}`;
-            
             if (temizHex.length === 2 && SYSTEM_KNOWLEDGE.game_1914[temizHex]) {
                 responseHTML += `<br><br>📊 <b>EW6 1914 Ülke Karşılığı:</b><br>• ${SYSTEM_KNOWLEDGE.game_1914[temizHex]}`;
             }
-            
             chatBox.innerHTML += `<div class="message ai-message">${responseHTML}</div>`;
             renderHexView(bulunanIndeksler, arananByteDizisi.length);
-
-            setTimeout(() => {
-                let hedefByte = document.querySelector('.highlighted-hex');
-                if (hedefByte) {
-                    hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 150);
-
         } else {
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].notFound(girdi)}</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
-    } 
-    // 3. Durum: Normal Sohbet Veya Aklındaki Kod Soruları (Groq API çağrısı)
-    else {
+    } else {
         let loadingId = "loading_" + Date.now();
         chatBox.innerHTML += `<div class="message ai-message" id="${loadingId}">${diller[mevcutDil].aiLoading}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -188,7 +181,6 @@ async function aiAnalizEt() {
             document.getElementById(loadingId).innerHTML = aiCevap;
 
         } catch (error) {
-            console.error("Groq API hatası:", error);
             document.getElementById(loadingId).innerText = "❌ Yapay zeka hatası: " + error.message;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -215,12 +207,6 @@ function hizliHexAra() {
 
     if (bulunanIndeksler.length > 0) {
         renderHexView(bulunanIndeksler, arananByteDizisi.length);
-        setTimeout(() => {
-            let hedefByte = document.querySelector('.highlighted-hex');
-            if (hedefByte) hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
-    } else {
-        alert("Aranan kod dosya içerisinde bulunamadı kral!");
     }
 }
 
@@ -234,8 +220,7 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
     for (let i = 0; i < fileData.length; i += 8) {
         let rowDiv = document.createElement('div'); rowDiv.className = 'hex-row';
         let addressDiv = document.createElement('div'); addressDiv.className = 'hex-address';
-        let hexAddressStr = i.toString(16).toUpperCase().padStart(8, '0');
-        addressDiv.innerText = hexAddressStr;
+        addressDiv.innerText = i.toString(16).toUpperCase().padStart(8, '0');
         rowDiv.appendChild(addressDiv);
         let bytesDiv = document.createElement('div'); bytesDiv.className = 'hex-bytes';
 
@@ -245,14 +230,13 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
             let byteBtn = document.createElement('span'); byteBtn.className = 'hex-byte';
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
             
-            byteBtn.onclick = function() {
-                document.getElementById('manualAddressInput').value = currentIndex.toString(16).toUpperCase().padStart(8, '0');
-                document.getElementById('manualHexInput').value = byte.toString(16).toUpperCase().padStart(2, '0');
-                document.getElementById('manualHexInput').focus();
-            };
+            byteBtn.setAttribute('onclick', `handleByteClick(${currentIndex})`);
+
+            if (selectedIndices.includes(currentIndex)) {
+                byteBtn.classList.add('selected-active');
+            }
 
             if (vurgulanacakIndeksler.some(b => currentIndex >= b && currentIndex < b + arananUzunluk)) {
-                byteBtn.classList.add('highlighted-hex');
                 byteBtn.style.background = "#a370f7"; byteBtn.style.color = "#fff";
             }
             bytesDiv.appendChild(byteBtn);
@@ -262,29 +246,35 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
 }
 
 function manuelAdresDegistir() {
-    let adrStr = document.getElementById('manualAddressInput').value.trim();
     let hexStr = document.getElementById('manualHexInput').value.trim();
-    if(!adrStr || !hexStr || !fileData) return;
+    if(!hexStr || !fileData || selectedIndices.length === 0) return;
 
-    let index = parseInt(adrStr, 16);
-    if(index >= fileData.length) { alert("Geçersiz adres kral!"); return; }
-    
-    fileData[index] = parseInt(hexStr, 16);
+    let yeniByteVal = parseInt(hexStr, 16);
+    selectedIndices.forEach(index => {
+        if(index < fileData.length) fileData[index] = yeniByteVal;
+    });
+
     renderHexView();
-    alert("Byte başarıyla güncellendi!");
+    // Uyarıyı kaldırdık, çoklu seçim aktifse temizlemiyoruz ki rahat işlem yapılsın
+    if (!multiSelectMode) {
+        selectedIndices = [];
+        document.getElementById('manualAddressInput').value = "";
+    }
 }
 
 function manuelAdresSil() {
-    let adrStr = document.getElementById('manualAddressInput').value.trim();
-    if(!adrStr || !fileData) return;
+    if(!fileData || selectedIndices.length === 0) return;
 
-    let index = parseInt(adrStr, 16);
-    if(index >= fileData.length) { alert("Geçersiz adres kral!"); return; }
+    selectedIndices.forEach(index => {
+        if(index < fileData.length) fileData[index] = 0;
+    });
 
-    fileData[index] = 0;
     renderHexView();
     document.getElementById('manualHexInput').value = "00";
-    alert("Byte sıfırlandı (00)!");
+    if (!multiSelectMode) {
+        selectedIndices = [];
+        document.getElementById('manualAddressInput').value = "";
+    }
 }
 
 function decToHexConvert() {
@@ -318,4 +308,4 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-                
+        
