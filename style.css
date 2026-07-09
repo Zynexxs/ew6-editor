@@ -46,8 +46,6 @@ body {
     font-size: 11px;
     color: #6c7293;
     display: block;
-    font-weight: 500;
-    margin-top: 2px;
 }
 
 .header-btns {
@@ -57,96 +55,100 @@ body {
 
 .search-toggle-btn, .lang-btn, .new-chat-btn {
     background: #222433;
-    color: #fff;
     border: none;
+    color: #fff;
     padding: 6px 10px;
     border-radius: 8px;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
     cursor: pointer;
+    font-weight: 600;
 }
 
-.search-toggle-btn:active, .lang-btn:active, .new-chat-btn:active {
-    background: #a370f7;
+.search-toggle-btn:hover, .lang-btn:hover, .new-chat-btn:hover {
+    background: #2c2e43;
 }
 
-/* Sağ Üst Hızlı Arama Kutusu */
+/* Hızlı Arama Çubuğu */
 .quick-search-bar {
-    background: #171821;
-    padding: 8px 12px;
     display: flex;
-    gap: 6px;
+    padding: 8px 12px;
+    background: #171821;
     border-bottom: 1px solid #222433;
+    gap: 8px;
 }
+
 .quick-search-bar input {
     flex: 1;
     background: #0d0e14;
     border: 1px solid #222433;
-    border-radius: 6px;
+    padding: 6px 10px;
     color: #fff;
-    padding: 6px;
+    border-radius: 6px;
     font-size: 12px;
     outline: none;
 }
+
 .quick-search-bar button {
     background: #a370f7;
-    color: #fff;
     border: none;
-    padding: 0 12px;
+    color: #fff;
+    padding: 6px 12px;
     border-radius: 6px;
+    font-size: 12px;
     cursor: pointer;
-    font-size: 11.5px;
     font-weight: bold;
 }
 
-/* Hızlı Dönüştürücü */
+/* Hızlı Dec/Hex Çevirici */
 .quick-converter {
-    background: #12131a;
-    padding: 10px 12px;
     display: flex;
-    gap: 12px;
     align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #12131a;
     border-bottom: 1px solid #222433;
 }
 
-#decInput {
-    width: 110px;
-    background: #171821;
+.quick-converter input {
+    width: 90px;
+    background: #0d0e14;
     border: 1px solid #222433;
+    border-radius: 6px;
     color: #fff;
-    padding: 6px;
-    border-radius: 8px;
-    outline: none;
+    padding: 5px;
     font-size: 12px;
+    outline: none;
     text-align: center;
 }
 
 .convert-results {
     display: flex;
     gap: 12px;
-    font-size: 11px;
-    color: #6c7293;
+    font-size: 12px;
+    color: #8f94a8;
 }
 
 .convert-results strong {
-    color: #ffca28;
+    color: #f1c40f;
 }
 
-/* Mesajlaşma Alanı */
+/* Mesaj Alanı */
 .messages-container {
-    height: 180px;
-    padding: 12px;
+    flex: 1;
+    min-height: 200px;
+    max-height: 320px;
+    padding: 15px;
     overflow-y: auto;
-    background: #0d0e14;
+    background: #090a0f;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .message {
     max-width: 85%;
-    padding: 8px 12px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
     font-size: 13px;
     line-height: 1.4;
     word-wrap: break-word;
@@ -156,6 +158,7 @@ body {
     background: #171821;
     color: #e2e4e9;
     align-self: flex-start;
+    border-bottom-left-radius: 4px;
     border-left: 3px solid #a370f7;
 }
 
@@ -163,9 +166,10 @@ body {
     background: #a370f7;
     color: #fff;
     align-self: flex-end;
+    border-bottom-right-radius: 4px;
 }
 
-/* Giriş Çerçevesi */
+/* Girdi Alanı */
 .input-wrapper {
     padding: 10px;
     background: #111218;
@@ -176,8 +180,8 @@ body {
     display: flex;
     background: #171821;
     border-radius: 10px;
-    border: 1px solid #222433;
     overflow: hidden;
+    border: 1px solid #222433;
 }
 
 .input-container input {
@@ -199,7 +203,7 @@ body {
     font-weight: bold;
 }
 
-/* Dosya Seçme ve İndirme */
+/* Dosya Seçme */
 .file-panel {
     padding: 8px 10px;
     display: flex;
@@ -225,30 +229,55 @@ body {
 
 #downloadBtn { background: #27ae60; }
 
-/* Temaya Uygun Manuel Düzenleme Menüsü */
+/* Byte Düzenleme Menüsü */
 .manual-menu-panel {
     background: #171821;
+    padding: 10px 12px;
     border-top: 1px solid #222433;
-    border-bottom: 1px solid #222433;
-    padding: 10px;
-    color: #fff;
 }
+
+.menu-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
 .menu-title {
     font-weight: bold;
     font-size: 13px;
-    margin-bottom: 2px;
     color: #a370f7;
 }
+
+.multi-toggle-btn {
+    background: #222433;
+    border: 1px solid #3b3f5c;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.multi-toggle-btn.active {
+    background: #e67e22;
+    border-color: #d35400;
+}
+
 .menu-info {
     font-size: 11px;
     color: #6c7293;
     margin-bottom: 8px;
 }
+
 .menu-actions {
     display: flex;
     gap: 6px;
     align-items: center;
 }
+
 .menu-actions input {
     background: #0d0e14;
     border: 1px solid #222433;
@@ -259,8 +288,10 @@ body {
     text-align: center;
     outline: none;
 }
-#manualAddressInput { width: 110px; }
+
+#manualAddressInput { width: 110px; background: #12131a; color: #8f94a8; }
 #manualHexInput { width: 75px; }
+
 .action-btn {
     padding: 6px 10px;
     border: none;
@@ -270,6 +301,7 @@ body {
     font-weight: bold;
     color: #fff;
 }
+
 .change-btn { background: #27ae60; }
 .delete-btn { background: #eb5757; }
 
@@ -279,47 +311,55 @@ body {
     padding: 10px;
     background: #090a0f;
     overflow-y: auto;
+    border-top: 1px solid #222433;
 }
 
 .hex-empty-msg {
-    color: #6c7293;
+    color: #4f546c;
     font-size: 12px;
     text-align: center;
-    padding-top: 50px;
+    margin-top: 60px;
 }
 
 .hex-editor-grid {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-family: monospace;
-    font-size: 12px;
 }
 
 .hex-row {
     display: flex;
     align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
 }
 
 .hex-address {
-    color: #5c5589;
+    color: #565b73;
+    width: 85px;
     font-weight: bold;
-    margin-right: 12px;
 }
 
 .hex-bytes {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .hex-byte {
+    color: #cbd5e1;
     cursor: pointer;
-    color: #bbadff;
-    padding: 1px 3px;
+    padding: 2px 4px;
     border-radius: 4px;
+    transition: all 0.1s ease;
 }
 
 .hex-byte:hover {
-    background: #a370f7;
+    background: #222433;
     color: #fff;
+}
+
+.hex-byte.selected-active {
+    background: #e67e22 !important;
+    color: #fff !important;
+    font-weight: bold;
 }
