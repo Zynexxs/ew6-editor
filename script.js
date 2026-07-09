@@ -3,7 +3,8 @@ let fileData = null;
 
 // Buraya Google AI Studio'dan aldığın ücretsiz API anahtarını yapıştır kral
 // NOT: AI Studio artık "AQ.Ab..." formatında anahtar veriyor, bu yeni format
-// URL parametresi yerine header ile gönderiliyor (aşağıdaki fetch isteğine bak).
+// SADECE header ile gönderiliyor. URL'ye ?key= olarak eklemek OAuth hatasına
+// sebep oluyor, bu yüzden URL'de key YOK, sadece header'da var.
 const GEMINI_API_KEY = "AQ.Ab8RN6KVfdbzA--QAOOGUidgVx32_tXtPaWKjxIRZe1xtyLlvg"; 
 
 // Ülke Kodları Bilgi Hafızası
@@ -64,6 +65,13 @@ function dilDegistir() {
     mevcutDil = mevcutDil === "tr" ? "en" : "tr";
     uiGuncelle();
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
+}
+
+function buildAiPrompt(girdi) {
+    if (mevcutDil === "en") {
+        return `You are an assistant for the European War 6 (EW6) game and hex editor. Reply in English only, in a friendly casual tone calling the user "bro". Keep the answer short and to the point. User's message: ${girdi}`;
+    }
+    return `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. Kullanıcının mesajı: ${girdi}`;
 }
 
 async function aiAnalizEt() {
@@ -132,11 +140,12 @@ async function aiAnalizEt() {
 
         try {
             // Canlı Google Gemini API İsteği
-            // ÖNEMLİ: Yeni "AQ." formatındaki anahtarlar URL'deki ?key= parametresiyle DEĞİL,
-            // x-goog-api-key header'ıyla gönderilmeli. Model adı da güncel modele çekildi
-            // çünkü gemini-1.5-flash artık kapatıldı ve çalışmıyor.
+            // ÖNEMLİ: Yeni "AQ." formatındaki anahtarlar SADECE x-goog-api-key
+            // header'ıyla gönderilmeli. URL'ye ?key= olarak da eklemek Google'ı
+            // karıştırıp "OAuth2 token bekleniyor" hatasına yol açıyor -
+            // bu yüzden URL'de key parametresi YOK.
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
                 {
                     method: "POST",
                     headers: {
@@ -144,7 +153,7 @@ async function aiAnalizEt() {
                         "x-goog-api-key": GEMINI_API_KEY
                     },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Kullanıcıya samimi bir dille, 'kral' diye hitap ederek kısa ve öz cevap ver. Kullanıcının mesajı: ${girdi}` }] }]
+                        contents: [{ parts: [{ text: buildAiPrompt(girdi) }] }]
                     })
                 }
             );
