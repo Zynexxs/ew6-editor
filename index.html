@@ -14,9 +14,9 @@
                 <span class="author">Created by Zynex</span>
             </div>
             <div class="header-btns">
-                <button class="search-toggle-btn" onclick=\"toggleSearchInput()\">🔍</button>
-                <button class="lang-btn" onclick=\"dilDegistir()\">🌐 TR/EN</button>
-                <button class="new-chat-btn" onclick=\"temizleSohbet()\">🔄</button>
+                <button class="search-toggle-btn" onclick="toggleSearchInput()">🔍</button>
+                <button class="lang-btn" onclick="dilDegistir()">🌐 TR/EN</button>
+                <button class="new-chat-btn" onclick="temizleSohbet()">🔄</button>
             </div>
         </header>
 
@@ -28,8 +28,8 @@
         <div class="quick-converter">
             <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
             <div class="convert-results">
-                <span id="lblHex">Hex: <strong id=\"hexResult\">0000</strong></span>
-                <span id="lblGame">Game: <strong id=\"gameHexResult\">00 00</strong></span>
+                <span id="lblHex">Hex: <strong id="hexResult">0000</strong></span>
+                <span id="lblGame">Game: <strong id="gameHexResult">00 00</strong></span>
             </div>
         </div>
 
@@ -43,7 +43,7 @@
         </div>
 
         <div class="file-panel">
-            <label for="fileInput" class=\"file-label\" id=\"lblOpenFile\">📂 Dosya Seç / Open File</label>
+            <label for="fileInput" class="file-label" id="lblOpenFile">📂 Dosya Seç / Open File</label>
             <input type="file" id="fileInput" accept=".bin,.sav,.dat,.btl,.*">
             <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 Dosyayı Kaydet</button>
         </div>
@@ -53,18 +53,27 @@
                 <div class="menu-title">🛠️ Byte Düzenleme Menüsü</div>
                 <button id="multiSelectToggle" class="multi-toggle-btn" onclick="toggleMultiSelectMode()">🔗 Çoklu Seçim: KAPALI</button>
             </div>
-            <div class="menu-info" id="editMenuInfo">Düzenlemek için aşağıdan bir veya birden fazla byte'a tıklayın.</div>
+            <div class="menu-info" id="editMenuInfo">Düzenlemek için aşağıdan byte seçin.</div>
             <div class="menu-actions">
                 <input type="text" id="manualAddressInput" placeholder="Adresler" readonly>
                 <input type="text" id="manualHexInput" placeholder="Yeni Hex" maxlength="2">
                 <button class="action-btn change-btn" onclick="manuelAdresDegistir()">✏️ Değiştir</button>
-                <button class="action-btn delete-btn" onclick="manuelAdresSil()">🗑️ Sıfırla (00)</button>
+                <button class="action-btn delete-btn" onclick="manuelAdresSil()">🗑️ Sıfırla</button>
             </div>
         </div>
 
         <div class="hex-viewer-container">
             <div id="hexPlaceholder" class="hex-empty-msg"></div>
             <div id="hexEditorGrid" class="hex-editor-grid" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div id="customAlertModal" class="custom-alert-overlay" style="display: none;">
+        <div class="custom-alert-box">
+            <div class="custom-alert-icon">❌</div>
+            <h4 id="customAlertTitle">Sonuç Bulunamadı</h4>
+            <p id="customAlertMsg">Aradığınız hex dizilimi dosya içerisinde mevcut değil kral.</p>
+            <button class="custom-alert-btn" onclick="kapatCustomAlert()">Tamam, Kral</button>
         </div>
     </div>
 </body>
