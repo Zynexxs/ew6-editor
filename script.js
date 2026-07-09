@@ -5,7 +5,7 @@ let fileData = null;
 // NOT: AI Studio artık "AQ.Ab..." formatında anahtar veriyor, bu yeni format
 // SADECE header ile gönderiliyor. URL'ye ?key= olarak eklemek OAuth hatasına
 // sebep oluyor, bu yüzden URL'de key YOK, sadece header'da var.
-const GEMINI_API_KEY = "AQ.Ab8RN6Il_ESO1UtVP92NP13zt58yMCuqmWV6WjAwd9KtQdu60g"; 
+const GEMINI_API_KEY = "AQ.Ab8RN6KrbuyNud1vKA4PI61WqVFaa7fNwZgA32FdYjIAgnOmGQ"; 
 
 // Ülke Kodları Bilgi Hafızası
 const SYSTEM_KNOWLEDGE = {
@@ -252,4 +252,4 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-        
+                                                                    
