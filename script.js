@@ -1,11 +1,11 @@
 let mevcutDil = "tr";
 let fileData = null;
 
-// Buraya Google AI Studio'dan aldığın ücretsiz API anahtarını yapıştır kral
-// NOT: AI Studio artık "AQ.Ab..." formatında anahtar veriyor, bu yeni format
-// SADECE header ile gönderiliyor. URL'ye ?key= olarak eklemek OAuth hatasına
-// sebep oluyor, bu yüzden URL'de key YOK, sadece header'da var.
-const GEMINI_API_KEY = "AQ.Ab8RN6KrbuyNud1vKA4PI61WqVFaa7fNwZgA32FdYjIAgnOmGQ"; 
+// Groq Cloud API anahtarı (console.groq.com üzerinden alınır, "gsk_" ile başlar)
+// NOT: Bu anahtar client-side'da açık duruyor, herkes "view source" ile görebilir.
+// Yayına almadan önce bir backend/proxy arkasına almanı öneririm.
+const GROQ_API_KEY = "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";
+const GROQ_MODEL = "llama-3.3-70b-versatile"; // istersen "llama-3.1-8b-instant" gibi daha hızlı bir modelle değiştirebilirsin
 
 // Ülke Kodları Bilgi Hafızası
 const SYSTEM_KNOWLEDGE = {
@@ -28,7 +28,7 @@ const SYSTEM_KNOWLEDGE = {
 const diller = {
     tr: {
         placeholder: "Hex dizilimi girin veya Yapay Zekaya bir şey sorun...",
-        welcome: "🔎 EW6 Pure Hex Engine + Canlı Gemini AI Aktif! Hex aratabilir veya özgürce sohbet edebilirsiniz.",
+        welcome: "🔎 EW6 Pure Hex Engine + Canlı Groq AI Aktif! Hex aratabilir veya özgürce sohbet edebilirsiniz.",
         lblOpenFile: "📂 Dosya Seç / Open File",
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Hex araması yapabilmek için önce aşağıdan bir dosya yüklemelisin kral.",
@@ -40,7 +40,7 @@ const diller = {
     },
     en: {
         placeholder: "Enter hex sequence or ask AI anything...",
-        welcome: "🔎 EW6 Pure Hex Engine + Live Gemini AI Active! Search hex codes or chat freely.",
+        welcome: "🔎 EW6 Pure Hex Engine + Live Groq AI Active! Search hex codes or chat freely.",
         lblOpenFile: "📂 Open File / Dosya Seç",
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first to search.",
@@ -133,41 +133,40 @@ async function aiAnalizEt() {
         chatBox.innerHTML += `<div class="message ai-message" id="${loadingId}">${diller[mevcutDil].aiLoading}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (!GEMINI_API_KEY || GEMINI_API_KEY.length < 10) {
-            document.getElementById(loadingId).innerHTML = "⚠️ <b>Hata:</b> Yapay zekanın çalışması için script.js içindeki GEMINI_API_KEY alanına geçerli bir anahtar girmelisin kral.";
+        if (!GROQ_API_KEY || GROQ_API_KEY.length < 10) {
+            document.getElementById(loadingId).innerHTML = "⚠️ <b>Hata:</b> Yapay zekanın çalışması için script.js içindeki GROQ_API_KEY alanına geçerli bir anahtar girmelisin kral.";
             return;
         }
 
         try {
-            // Canlı Google Gemini API İsteği
-            // ÖNEMLİ: Yeni "AQ." formatındaki anahtarlar SADECE x-goog-api-key
-            // header'ıyla gönderilmeli. URL'ye ?key= olarak da eklemek Google'ı
-            // karıştırıp "OAuth2 token bekleniyor" hatasına yol açıyor -
-            // bu yüzden URL'de key parametresi YOK.
+            // Canlı Groq API İsteği (OpenAI-uyumlu chat/completions formatı)
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+                "https://api.groq.com/openai/v1/chat/completions",
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "x-goog-api-key": GEMINI_API_KEY
+                        "Authorization": `Bearer ${GROQ_API_KEY}`
                     },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: buildAiPrompt(girdi) }] }]
+                        model: GROQ_MODEL,
+                        messages: [
+                            { role: "user", content: buildAiPrompt(girdi) }
+                        ]
                     })
                 }
             );
 
             const data = await response.json();
 
-            // Google başarısız isteklerde de 200 dışı bir status ile birlikte
+            // Groq başarısız isteklerde 200 dışı bir status ile birlikte
             // data.error içinde gerçek sebebi döner. Onu yakalayıp gösteriyoruz.
             if (!response.ok) {
                 const mesaj = data?.error?.message || `HTTP ${response.status}`;
                 throw new Error(mesaj);
             }
 
-            let aiCevap = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            let aiCevap = data?.choices?.[0]?.message?.content;
 
             if (!aiCevap) {
                 throw new Error("Yapay zeka boş cevap döndü (muhtemelen içerik filtrelendi).");
@@ -177,7 +176,7 @@ async function aiAnalizEt() {
             document.getElementById(loadingId).innerText = aiCevap;
 
         } catch (error) {
-            console.error("Gemini API hatası:", error);
+            console.error("Groq API hatası:", error);
             document.getElementById(loadingId).innerText = "❌ Yapay zeka hatası: " + error.message;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -252,4 +251,3 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
-                                                                    
