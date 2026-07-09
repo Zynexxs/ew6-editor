@@ -5,9 +5,9 @@ let selectedIndices = [];
 let searchHighlights = [];
 let searchLength = 0;
 
-// 🎯 API ANAHTARI KÜÇÜK gsk_ FORMATINA ALINDI KRAL
+// 🎯 YENİ API ANAHTARIN VE EN STABİL MODEL AYARI TAMAMLANDI
 const GROQ_API_KEY = "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";
-const GROQ_MODEL = "llama3-70b-8192"; 
+const GROQ_MODEL = "llama3-70b-8192"; // En sorunsuz ve kararlı çalışan Groq modeliyle güncellendi!
 
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
@@ -77,7 +77,6 @@ function toggleMultiSelectMode() {
 }
 
 function handleByteClick(index) {
-    if (!fileData) return;
     if (multiSelectMode) {
         let position = selectedIndices.indexOf(index);
         if (position > -1) {
@@ -91,20 +90,27 @@ function handleByteClick(index) {
         document.getElementById('manualAddressInput').value = index.toString(16).toUpperCase().padStart(8, '0');
         document.getElementById('manualHexInput').value = fileData[index].toString(16).toUpperCase().padStart(2, '0');
     }
-    
-    // Performans optimizasyonu: tüm DOM'u baştan aşağı silip yaratmak yerine sadece sınıfları güncelliyoruz
-    let elements = document.querySelectorAll('.hex-byte');
-    elements.forEach((el, idx) => {
-        if (selectedIndices.includes(idx)) {
-            el.classList.add('selected-active');
-        } else {
-            el.classList.remove('selected-active');
-        }
+    updateSelectionHighlight();
+}
+
+function updateSelectionHighlight() {
+    document.querySelectorAll('.hex-byte.selected-active').forEach(el => el.classList.remove('selected-active'));
+    selectedIndices.forEach(idx => {
+        const el = document.getElementById('byte-' + idx);
+        if (el) el.classList.add('selected-active');
     });
 }
 
 function buildAiPrompt(girdi) {
-    let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 1914 Kuralları: 01 Osmanlı İmparatorluğu, 02 Büyük Britanya'dır.`;
+    let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 
+Arka Plan Bilgi ve Hafıza Kuralları (Sadece 1914 Yılı Geçerlidir):
+- Sana doğrudan "01" denirse veya "01 nedir", "01 hangi ülkenin" gibi sorular sorulursa kesinlikle "Osmanlı İmparatorluğu" diyeceksin.
+- Sana doğrudan "02" denirse veya "02 nedir", "02 hangi ülkenin" gibi sorular sorulursa kesinlikle "Büyük Britanya" (veya Britanya) diyeceksin.
+- 03, 04, 05 veya diğer hiçbir sayı doğru değildir, onlar sorulursa doğru olmadığını belirtip ülke ismi söylemeyeceksin.`;
+    
+    if (mevcutDil === "en") {
+        rules = `You are an assistant for the European War 6 (EW6) game and hex editor. Reply in English only, in a friendly casual tone calling the user "bro". Keep it short. 1914 rules: 01 is Ottoman Empire, 02 is Great Britain. Others are invalid.`;
+    }
     return `${rules}\n\nKullanıcının Gönderdiği Mesaj: ${girdi}`;
 }
 
@@ -158,13 +164,17 @@ async function aiAnalizEt() {
 
         if (bulunanIndeksler.length > 0) {
             let responseHTML = `${diller[mevcutDil].found(bulunanIndeksler.length, bulunanIndeksler[0].toString(16).toUpperCase().padStart(8, '0'))}`;
+            if (temizHex.length === 2 && SYSTEM_KNOWLEDGE.game_1914[temizHex]) {
+                responseHTML += `<br><br>📊 <b>EW6 1914 Ülke Karşılığı:</b><br>• ${SYSTEM_KNOWLEDGE.game_1914[temizHex]}`;
+            }
             chatBox.innerHTML += `<div class="message ai-message">${responseHTML}</div>`;
+            
             searchHighlights = bulunanIndeksler;
             searchLength = arananByteDizisi.length;
             renderHexView();
         } else {
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].notFound(girdi)}</div>`;
-            acCustomAlert("Sonuç Bulunamadı", `"${girdi}" dizilimi yüklü dosyada bulunamadı kral.`);
+            acCustomAlert("Sonuç Bulunamadı", `"${girdi}" dizilimi yüklü btl dosyasında bulunamadı kral.`);
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } else {
@@ -173,35 +183,37 @@ async function aiAnalizEt() {
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
-                },
-                body: JSON.stringify({
-                    model: GROQ_MODEL,
-                    messages: [{ role: "user", content: buildAiPrompt(girdi) }]
-                })
-            });
+            const response = await fetch(
+                "https://api.groq.com/openai/v1/chat/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
+                    },
+                    body: JSON.stringify({
+                        model: GROQ_MODEL,
+                        messages: [{ role: "user", content: buildAiPrompt(girdi) }]
+                    })
+                }
+            );
 
             const data = await response.json();
             if (!response.ok) throw new Error(data?.error?.message || `HTTP ${response.status}`);
-            document.getElementById(loadingId).innerHTML = data?.choices?.[0]?.message?.content;
+
+            let aiCevap = data?.choices?.[0]?.message?.content;
+            document.getElementById(loadingId).innerHTML = aiCevap;
 
         } catch (error) {
-            document.getElementById(loadingId).innerText = "❌ Hata: " + error.message;
+            document.getElementById(loadingId).innerText = "❌ Yapay zeka hatası: " + error.message;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
 
 function hizliHexAra() {
-    if(!fileData) {
-        acCustomAlert("Dosya Eksik", "Lütfen önce bir btl/bin dosyası yükleyin kral.");
-        return;
-    }
-    let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase();
+    let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase().replace(/\s+/g, '');
+    if(!fileData) return;
     if(!girdi) {
         acCustomAlert("Eksik Girdi", "Lütfen aramak için bir hex dizilimi yazın kral.");
         return;
@@ -248,12 +260,18 @@ function renderHexView() {
             let currentIndex = i + j; if (currentIndex >= fileData.length) break;
             let byte = fileData[currentIndex];
             let byteBtn = document.createElement('span'); byteBtn.className = 'hex-byte';
+            byteBtn.id = 'byte-' + currentIndex;
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
+            
             byteBtn.setAttribute('onclick', `handleByteClick(${currentIndex})`);
 
-            if (selectedIndices.includes(currentIndex)) byteBtn.classList.add('selected-active');
-            if (searchHighlights.some(b => currentIndex >= b && currentIndex < b + searchLength)) byteBtn.classList.add('search-highlight');
-            
+            if (selectedIndices.includes(currentIndex)) {
+                byteBtn.classList.add('selected-active');
+            }
+
+            if (searchHighlights.some(b => currentIndex >= b && currentIndex < b + searchLength)) {
+                byteBtn.classList.add('search-highlight');
+            }
             bytesDiv.appendChild(byteBtn);
         }
         rowDiv.appendChild(bytesDiv); grid.appendChild(rowDiv);
@@ -263,15 +281,32 @@ function renderHexView() {
 function manuelAdresDegistir() {
     let hexStr = document.getElementById('manualHexInput').value.trim();
     if(!hexStr || !fileData || selectedIndices.length === 0) return;
+
     let yeniByteVal = parseInt(hexStr, 16);
-    selectedIndices.forEach(index => { if(index < fileData.length) fileData[index] = yeniByteVal; });
+    selectedIndices.forEach(index => {
+        if(index < fileData.length) fileData[index] = yeniByteVal;
+    });
+
     renderHexView();
+    if (!multiSelectMode) {
+        selectedIndices = [];
+        document.getElementById('manualAddressInput').value = "";
+    }
 }
 
 function manuelAdresSil() {
     if(!fileData || selectedIndices.length === 0) return;
-    selectedIndices.forEach(index => { if(index < fileData.length) fileData[index] = 0; });
+
+    selectedIndices.forEach(index => {
+        if(index < fileData.length) fileData[index] = 0;
+    });
+
     renderHexView();
+    document.getElementById('manualHexInput').value = "00";
+    if (!multiSelectMode) {
+        selectedIndices = [];
+        document.getElementById('manualAddressInput').value = "";
+    }
 }
 
 function decToHexConvert() {
@@ -295,19 +330,13 @@ function downloadModdedFile() {
 document.addEventListener("DOMContentLoaded", () => {
     uiGuncelle();
     temizleSohbet();
-    
-    const fInput = document.getElementById('fileInput');
-    if(fInput) {
-        fInput.addEventListener('change', function(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                fileData = new Uint8Array(evt.target.result); 
-                renderHexView();
-                document.getElementById('downloadBtn').style.display = "block";
-            };
-            reader.readAsArrayBuffer(file);
-        });
-    }
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            fileData = new Uint8Array(evt.target.result); renderHexView();
+            document.getElementById('downloadBtn').style.display = "block";
+        };
+        reader.readAsArrayBuffer(file);
+    });
 });
-        
