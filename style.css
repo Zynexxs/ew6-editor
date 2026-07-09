@@ -295,6 +295,8 @@ body {
 
 .change-btn { background: #27ae60; }
 .delete-btn { background: #eb5757; }
+.cut-btn { background: #3c8ff7; }
+.cut-btn:active { background: #2f75d4; }
 
 .hex-viewer-container {
     height: 220px;
@@ -410,4 +412,4 @@ body {
     font-weight: bold;
     cursor: pointer;
     width: 100%;
-}
+                     }
