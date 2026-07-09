@@ -1,27 +1,14 @@
 let mevcutDil = "tr";
 let fileData = null;
 
-// Groq Cloud API anahtarı (console.groq.com üzerinden alınır, "gsk_" ile başlar)
-// NOT: Bu anahtar client-side'da açık duruyor, herkes "view source" ile görebilir.
-// Yayına almadan önce bir backend/proxy arkasına almanı öneririm.
 const GROQ_API_KEY = "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";
-const GROQ_MODEL = "llama-3.3-70b-versatile"; // istersen "llama-3.1-8b-instant" gibi daha hızlı bir modelle değiştirebilirsin
+const GROQ_MODEL = "llama-3.3-70b-versatile"; 
 
-// Ülke Kodları Bilgi Hafızası
+// Sadece 1914 yılına ait 01 ve 02 kodları kalacak şekilde ayarlandı
 const SYSTEM_KNOWLEDGE = {
-    game_1804: {
-        "01": "Osmanlı İmparatorluğu (Ottoman Empire)", "02": "Büyük Britanya (Great Britain)",
-        "03": "Fransa (France)", "04": "Rusya (Russia)", "05": "Avusturya (Austria)",
-        "06": "Prusya (Prussia)", "07": "İspanya (Spain)", "08": "Portekiz (Portugal)",
-        "09": "Sardinya (Sardinia)", "0A": "Sicilya (Sicily)", "0B": "Hollanda (Holland)",
-        "0C": "İsveç (Sweden)", "0D": "Danimarka (Denmark)", "0E": "Bavyera (Bavaria)", "0F": "Saksonya (Saxony)"
-    },
     game_1914: {
-        "01": "Osmanlı İmparatorluğu (Ottoman Empire)", "02": "Alman İmparatorluğu (German Empire)",
-        "03": "Avusturya-Macaristan İmparatorluğu", "04": "Bulgaristan Krallığı (Kingdom of Bulgaria)",
-        "05": "Büyük Britanya (Great Britain)", "06": "Fransa (France)", "07": "Rusya (Russia)",
-        "08": "İtalya (Italy)", "09": "ABD (USA)", "0A": "Japonya (Japan)", "0B": "Belçika (Belgium)",
-        "0C": "Sırbistan (Serbia)", "0D": "Romanya (Romania)", "0E": "Yunanistan (Greece)", "0F": "Karadağ (Montenegro)"
+        "01": "Osmanlı İmparatorluğu (Ottoman Empire)",
+        "02": "Büyük Britanya (Great Britain)"
     }
 };
 
@@ -33,7 +20,7 @@ const diller = {
         lblDec: "Sayı / Dec...",
         needFile: "⚙️ Hex araması yapabilmek için önce aşağıdan bir dosya yüklemelisin kral.",
         placeholderText: "Modlamak istediğiniz EW6 dosyasını seçin...",
-        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b>.`,
+        found: (sayi, indeks) => `🎯 <b>Dizilim Bulundu!</b><br>Eşleşen Blok Sayısı: <b>${sayi}</b><br>İlk Adres: <b>${indeks}</b> (O bölgeye odaklanıldı).`,
         notFound: (girdi) => `❌ "${girdi}" dizilimi dosyada bulunamadı.`,
         promptPrompt: (indeks, mevcut) => `Adres: ${indeks}\nMevcut Hex: ${mevcut}\nYeni Hex:`,
         aiLoading: "🤖 Yapay Zeka düşünüyor..."
@@ -45,7 +32,7 @@ const diller = {
         lblDec: "Number / Dec...",
         needFile: "⚙️ Please upload a file first to search.",
         placeholderText: "Please select an EW6 file to start...",
-        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b>.`,
+        found: (sayi, indeks) => `🎯 <b>Sequence Found!</b><br>Matches: <b>${sayi}</b><br>First Offset: <b>${indeks}</b> (Scrolled to view).`,
         notFound: (girdi) => `❌ "${girdi}" sequence not found in file.`,
         promptPrompt: (indeks, mevcut) => `Index: ${indeks}\nCurrent Hex: ${mevcut}\nNew Hex:`,
         aiLoading: "🤖 AI is thinking..."
@@ -67,11 +54,23 @@ function dilDegistir() {
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
 }
 
+function toggleSearchInput() {
+    let bar = document.getElementById('quickSearchBar');
+    bar.style.display = bar.style.display === "none" ? "flex" : "none";
+}
+
+// İstediğin bilgileri doğrudan yapay zekanın aklına/bilincine kazıdığımız yer burası kral!
 function buildAiPrompt(girdi) {
+    let rules = `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. 
+Arka Plan Bilgi ve Hafıza Kuralları (Sadece 1914 Yılı Geçerlidir):
+- Sana doğrudan "01" denirse veya "01 nedir", "01 hangi ülkenin" gibi sorular sorulursa kesinlikle "Osmanlı İmparatorluğu" diyeceksin.
+- Sana doğrudan "02" denirse veya "02 nedir", "02 hangi ülkenin" gibi sorular sorulursa kesinlikle "Büyük Britanya" (veya Britanya) diyeceksin.
+- 03, 04, 05 veya diğer hiçbir sayı doğru değildir, onlar sorulursa doğru olmadığını belirtip ülke ismi söylemeyeceksin.`;
+    
     if (mevcutDil === "en") {
-        return `You are an assistant for the European War 6 (EW6) game and hex editor. Reply in English only, in a friendly casual tone calling the user "bro". Keep the answer short and to the point. User's message: ${girdi}`;
+        rules = `You are an assistant for the European War 6 (EW6) game and hex editor. Reply in English only, in a friendly casual tone calling the user "bro". Keep it short. 1914 rules: 01 is Ottoman Empire, 02 is Great Britain. Others are invalid.`;
     }
-    return `Sen European War 6 (EW6) oyunu ve Hex editör asistanısın. Sadece Türkçe cevap ver, samimi bir dille 'kral' diye hitap ederek kısa ve öz cevap ver. Kullanıcının mesajı: ${girdi}`;
+    return `${rules}\n\nKullanıcının Gönderdiği Mesaj: ${girdi}`;
 }
 
 async function aiAnalizEt() {
@@ -79,17 +78,43 @@ async function aiAnalizEt() {
     let chatBox = document.getElementById('chatBox');
     if(!girdi) return;
 
-    // Kullanıcı mesajını ekrana bas
     chatBox.innerHTML += `<div class="message user-message">${girdi}</div>`;
     document.getElementById('input').value = ''; 
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Girdiyi Hex araması için temizle
-    let temizHex = girdi.replace(/\s+/g, '').toUpperCase();
-    let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2;
+    // Özel Komut Analizi: Örn "ff 01 ff kodundaki 01'i 02 olarak değiştir"
+    let degistirMatch = girdi.toLowerCase().match(/(?:kodundaki|dizilimindeki)\s+([0-9a-f]{2})\s*(?:'i|'ı|i|ı)?\s+([0-9a-f]{2})\s+olarak\s+değiştir/);
+    
+    // Kullanıcı sadece "01 bul" veya "01 ara" tarzı bir komut mu verdi kontrolü
+    let bulKelimesiVar = girdi.toLowerCase().includes("bul") || girdi.toLowerCase().includes("ara");
 
-    // Eğer girdi geçerli bir HEX koduysa, dosya aramasına yönlendir
-    if (hexValid) {
+    // Girdiyi saf hex olarak temizle
+    let temizHex = girdi.toUpperCase().replace(/ARAMA/g, '').replace(/YAP/g, '').replace(/BUL/g, '').replace(/\s+/g, '').trim();
+    
+    // Sadece "01" veya "02" gibi yalın soruları Hex motoruna kaptırmayıp yapay zekaya yönlendirmek için kural ekledik kral
+    let sadeceYalinKodMu = (temizHex === "01" || temizHex === "02" || temizHex === "03") && !bulKelimesiVar && !fileData;
+    let hexValid = /^[0-9A-F]+$/.test(temizHex) && temizHex.length >= 2 && !sadeceYalinKodMu;
+
+    // 1. Durum: Doğrudan Değiştirme Komutu
+    if (degistirMatch && fileData) {
+        let eskiByte = parseInt(degistirMatch[1], 16);
+        let yeniByte = parseInt(degistirMatch[2], 16);
+        let degisenSayac = 0;
+
+        for (let i = 0; i < fileData.length; i++) {
+            if (fileData[i] === eskiByte) {
+                fileData[i] = yeniByte;
+                degisenSayac++;
+            }
+        }
+        chatBox.innerHTML += `<div class="message ai-message">🛠️ Komut uygulandı kral! Dosyadaki tüm <b>${degistirMatch[1].toUpperCase()}</b> kodları <b>${degistirMatch[2].toUpperCase()}</b> olarak değiştirildi. Toplam değiştirilen: ${degisenSayac} adet.</div>`;
+        renderHexView();
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return;
+    }
+
+    // 2. Durum: Hex araması veya "kodunu bul" komutu
+    if (hexValid || (bulKelimesiVar && temizHex.length >= 2)) {
         if (!fileData) { 
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].needFile}</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -113,33 +138,34 @@ async function aiAnalizEt() {
         }
 
         if (bulunanIndeksler.length > 0) {
-            let responseHTML = `${diller[mevcutDil].found(bulunanIndeksler.length, bulunanIndeksler[0])}`;
-            if (temizHex.length === 2 && (SYSTEM_KNOWLEDGE.game_1804[temizHex] || SYSTEM_KNOWLEDGE.game_1914[temizHex])) {
-                responseHTML += `<br><br>📊 <b>EW6 Ülke Karşılığı:</b>`;
-                if(SYSTEM_KNOWLEDGE.game_1804[temizHex]) responseHTML += `<br>• 1804: ${SYSTEM_KNOWLEDGE.game_1804[temizHex]}`;
-                if(SYSTEM_KNOWLEDGE.game_1914[temizHex]) responseHTML += `<br>• 1914: ${SYSTEM_KNOWLEDGE.game_1914[temizHex]}`;
+            let responseHTML = `${diller[mevcutDil].found(bulunanIndeksler.length, bulunanIndeksler[0].toString(16).toUpperCase().padStart(8, '0'))}`;
+            
+            if (temizHex.length === 2 && SYSTEM_KNOWLEDGE.game_1914[temizHex]) {
+                responseHTML += `<br><br>📊 <b>EW6 1914 Ülke Karşılığı:</b><br>• ${SYSTEM_KNOWLEDGE.game_1914[temizHex]}`;
             }
+            
             chatBox.innerHTML += `<div class="message ai-message">${responseHTML}</div>`;
             renderHexView(bulunanIndeksler, arananByteDizisi.length);
+
+            setTimeout(() => {
+                let hedefByte = document.querySelector('.highlighted-hex');
+                if (hedefByte) {
+                    hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+
         } else {
             chatBox.innerHTML += `<div class="message ai-message">${diller[mevcutDil].notFound(girdi)}</div>`;
         }
         chatBox.scrollTop = chatBox.scrollHeight;
     } 
-    // Eğer girdi normal bir metinse (selam, soru vb.), CANLI YAPAY ZEKAYA BAĞLAN
+    // 3. Durum: Normal Sohbet Veya Aklındaki Kod Soruları (Groq API çağrısı)
     else {
-        // Yükleniyor mesajı ekle
         let loadingId = "loading_" + Date.now();
         chatBox.innerHTML += `<div class="message ai-message" id="${loadingId}">${diller[mevcutDil].aiLoading}</div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        if (!GROQ_API_KEY || GROQ_API_KEY.length < 10) {
-            document.getElementById(loadingId).innerHTML = "⚠️ <b>Hata:</b> Yapay zekanın çalışması için script.js içindeki GROQ_API_KEY alanına geçerli bir anahtar girmelisin kral.";
-            return;
-        }
-
         try {
-            // Canlı Groq API İsteği (OpenAI-uyumlu chat/completions formatı)
             const response = await fetch(
                 "https://api.groq.com/openai/v1/chat/completions",
                 {
@@ -150,30 +176,16 @@ async function aiAnalizEt() {
                     },
                     body: JSON.stringify({
                         model: GROQ_MODEL,
-                        messages: [
-                            { role: "user", content: buildAiPrompt(girdi) }
-                        ]
+                        messages: [{ role: "user", content: buildAiPrompt(girdi) }]
                     })
                 }
             );
 
             const data = await response.json();
-
-            // Groq başarısız isteklerde 200 dışı bir status ile birlikte
-            // data.error içinde gerçek sebebi döner. Onu yakalayıp gösteriyoruz.
-            if (!response.ok) {
-                const mesaj = data?.error?.message || `HTTP ${response.status}`;
-                throw new Error(mesaj);
-            }
+            if (!response.ok) throw new Error(data?.error?.message || `HTTP ${response.status}`);
 
             let aiCevap = data?.choices?.[0]?.message?.content;
-
-            if (!aiCevap) {
-                throw new Error("Yapay zeka boş cevap döndü (muhtemelen içerik filtrelendi).");
-            }
-
-            // Yükleniyor yazısını gerçek yapay zeka cevabıyla değiştir
-            document.getElementById(loadingId).innerText = aiCevap;
+            document.getElementById(loadingId).innerHTML = aiCevap;
 
         } catch (error) {
             console.error("Groq API hatası:", error);
@@ -183,16 +195,47 @@ async function aiAnalizEt() {
     }
 }
 
+function hizliHexAra() {
+    let girdi = document.getElementById('quickSearchInput').value.trim().toUpperCase();
+    if(!girdi || !fileData) return;
+    
+    let arananByteDizisi = [];
+    for (let i = 0; i < girdi.length; i += 2) {
+        arananByteDizisi.push(parseInt(girdi.substr(i, 2), 16));
+    }
+
+    let bulunanIndeksler = [];
+    for (let i = 0; i <= fileData.length - arananByteDizisi.length; i++) {
+        let eslesme = true;
+        for (let j = 0; j < arananByteDizisi.length; j++) {
+            if (fileData[i + j] !== arananByteDizisi[j]) { eslesme = false; break; }
+        }
+        if (eslesme) bulunanIndeksler.push(i);
+    }
+
+    if (bulunanIndeksler.length > 0) {
+        renderHexView(bulunanIndeksler, arananByteDizisi.length);
+        setTimeout(() => {
+            let hedefByte = document.querySelector('.highlighted-hex');
+            if (hedefByte) hedefByte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+    } else {
+        alert("Aranan kod dosya içerisinde bulunamadı kral!");
+    }
+}
+
 function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
     const placeholder = document.getElementById('hexPlaceholder');
     const grid = document.getElementById('hexEditorGrid');
     if(!fileData) return;
     placeholder.style.display = "none"; grid.style.display = "flex"; grid.innerHTML = "";
+    document.getElementById('manualMenu').style.display = "block";
 
     for (let i = 0; i < fileData.length; i += 8) {
         let rowDiv = document.createElement('div'); rowDiv.className = 'hex-row';
         let addressDiv = document.createElement('div'); addressDiv.className = 'hex-address';
-        addressDiv.innerText = i.toString(16).toUpperCase().padStart(8, '0');
+        let hexAddressStr = i.toString(16).toUpperCase().padStart(8, '0');
+        addressDiv.innerText = hexAddressStr;
         rowDiv.appendChild(addressDiv);
         let bytesDiv = document.createElement('div'); bytesDiv.className = 'hex-bytes';
 
@@ -201,15 +244,47 @@ function renderHexView(vurgulanacakIndeksler = [], arananUzunluk = 0) {
             let byte = fileData[currentIndex];
             let byteBtn = document.createElement('span'); byteBtn.className = 'hex-byte';
             byteBtn.innerText = byte.toString(16).toUpperCase().padStart(2, '0');
-            byteBtn.setAttribute('onclick', `editByte(${currentIndex})`);
+            
+            byteBtn.onclick = function() {
+                document.getElementById('manualAddressInput').value = currentIndex.toString(16).toUpperCase().padStart(8, '0');
+                document.getElementById('manualHexInput').value = byte.toString(16).toUpperCase().padStart(2, '0');
+                document.getElementById('manualHexInput').focus();
+            };
 
             if (vurgulanacakIndeksler.some(b => currentIndex >= b && currentIndex < b + arananUzunluk)) {
+                byteBtn.classList.add('highlighted-hex');
                 byteBtn.style.background = "#a370f7"; byteBtn.style.color = "#fff";
             }
             bytesDiv.appendChild(byteBtn);
         }
         rowDiv.appendChild(bytesDiv); grid.appendChild(rowDiv);
     }
+}
+
+function manuelAdresDegistir() {
+    let adrStr = document.getElementById('manualAddressInput').value.trim();
+    let hexStr = document.getElementById('manualHexInput').value.trim();
+    if(!adrStr || !hexStr || !fileData) return;
+
+    let index = parseInt(adrStr, 16);
+    if(index >= fileData.length) { alert("Geçersiz adres kral!"); return; }
+    
+    fileData[index] = parseInt(hexStr, 16);
+    renderHexView();
+    alert("Byte başarıyla güncellendi!");
+}
+
+function manuelAdresSil() {
+    let adrStr = document.getElementById('manualAddressInput').value.trim();
+    if(!adrStr || !fileData) return;
+
+    let index = parseInt(adrStr, 16);
+    if(index >= fileData.length) { alert("Geçersiz adres kral!"); return; }
+
+    fileData[index] = 0;
+    renderHexView();
+    document.getElementById('manualHexInput').value = "00";
+    alert("Byte sıfırlandı (00)!");
 }
 
 function decToHexConvert() {
@@ -222,14 +297,6 @@ function decToHexConvert() {
 
 function temizleSohbet() {
     document.getElementById('chatBox').innerHTML = `<div class="message ai-message">${diller[mevcutDil].welcome}</div>`;
-}
-
-function editByte(index) {
-    let currentHex = fileData[index].toString(16).toUpperCase().padStart(2, '0');
-    let newValue = prompt(diller[mevcutDil].promptPrompt(index, currentHex));
-    if (newValue !== null && newValue.trim().length === 2) {
-        fileData[index] = parseInt(newValue.trim(), 16); renderHexView();
-    }
 }
 
 function downloadModdedFile() {
@@ -251,3 +318,4 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsArrayBuffer(file);
     });
 });
+                
