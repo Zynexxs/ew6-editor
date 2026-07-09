@@ -14,10 +14,16 @@
                 <span class="author">Created by Zynex</span>
             </div>
             <div class="header-btns">
+                <button class="search-toggle-btn" onclick="toggleSearchInput()">🔍</button>
                 <button class="lang-btn" onclick="dilDegistir()">🌐 TR/EN</button>
                 <button class="new-chat-btn" onclick="temizleSohbet()">🔄</button>
             </div>
         </header>
+
+        <div id="quickSearchBar" class="quick-search-bar" style="display: none;">
+            <input type="text" id="quickSearchInput" placeholder="Hex Ara (Örn: FF01FF)..." onkeypress="if(event.key === 'Enter') hizliHexAra()">
+            <button onclick="hizliHexAra()">Bul</button>
+        </div>
 
         <div class="quick-converter">
             <input type="number" id="decInput" placeholder="Sayı / Dec..." oninput="decToHexConvert()">
@@ -38,8 +44,19 @@
 
         <div class="file-panel">
             <label for="fileInput" class="file-label" id="lblOpenFile">📂 Dosya Seç / Open File</label>
-            <input type="file" id="fileInput" accept=".bin,.sav,.dat,.*">
-            <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 İndir / Download</button>
+            <input type="file" id="fileInput" accept=".bin,.sav,.dat,.btl,.*">
+            <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 Dosyayı Kaydet</button>
+        </div>
+
+        <div class="manual-menu-panel" id="manualMenu" style="display: none;">
+            <div class="menu-title">🛠️ Byte Düzenleme Menüsü</div>
+            <div class="menu-info" id="editMenuInfo">Düzenlemek için aşağıdan bir byte'a tıklayın veya adresi girin.</div>
+            <div class="menu-actions">
+                <input type="text" id="manualAddressInput" placeholder="Adres (Örn: 00000008)">
+                <input type="text" id="manualHexInput" placeholder="Yeni Hex" maxlength="2">
+                <button class="action-btn change-btn" onclick="manuelAdresDegistir()">✏️ Değiştir</button>
+                <button class="action-btn delete-btn" onclick="manuelAdresSil()">🗑️ Sıfırla (00)</button>
+            </div>
         </div>
 
         <div class="hex-viewer-container">
