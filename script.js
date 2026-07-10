@@ -1,12 +1,15 @@
 let mevcutDil = "tr";
 let fileData = null;
+let originalFileName = null; // Yüklenen dosyanın orijinal adı (kaydederken aynı isim/uzantıyla inmesi için)
 let multiSelectMode = false;
 let selectedIndices = [];
 let searchHighlights = [];
 let searchLength = 0;
 
-const GROQ_API_KEY = "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";
-const GROQ_MODEL = "openai/gpt-oss-120b"; 
+// 🎯 Artık Groq'a DİREKT bağlanmıyoruz. Anahtar burada YOK.
+// İstekler senin Cloudflare Worker proxy'ne gidiyor, anahtar orada (secret olarak) duruyor.
+const PROXY_URL = "https://ew6-groq-proxy.osmanliadami56.workers.dev";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 const SYSTEM_KNOWLEDGE = {
     game_1914: {
@@ -186,11 +189,12 @@ async function aiAnalizEt() {
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            // 🎯 Artık Groq'a değil, kendi worker proxy'mize istek atıyoruz.
+            // Anahtar burada hiç yok; worker tarafında secret olarak duruyor.
+            const response = await fetch(PROXY_URL, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     model: GROQ_MODEL,
@@ -199,7 +203,7 @@ async function aiAnalizEt() {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data?.error?.message || `HTTP ${response.status}`);
+            if (!response.ok) throw new Error(data?.error?.message || data?.error || `HTTP ${response.status}`);
             
             if (data?.choices?.[0]?.message?.content) {
                 document.getElementById(loadingId).innerHTML = data.choices[0].message.content;
@@ -368,7 +372,38 @@ function temizleSohbet() {
 function downloadModdedFile() {
     const blob = new Blob([fileData], { type: "application/octet-stream" });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
-    link.download = "modded_ew6_file.bin"; link.click();
+    // Orijinal dosya adını ve uzantısını koru (btl, bin, sav, dat, ne olursa olsun aynı isimle iner)
+    link.download = originalFileName || "modded_ew6_file.bin";
+    link.click();
+}
+
+// Adresler kutusuna elle yazılan değerleri okuyup seçim listesine uygular (virgülle ayrılmış hex adresler)
+function manuelAdresGuncelle() {
+    if (!fileData) return;
+    let raw = document.getElementById('manualAddressInput').value;
+    let parts = raw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    let yeniSecili = [];
+    parts.forEach(p => {
+        let val = parseInt(p, 16);
+        if (!isNaN(val) && val >= 0 && val < fileData.length) {
+            yeniSecili.push(val);
+        }
+    });
+    selectedIndices = yeniSecili;
+
+    // Birden fazla adres elle girildiyse çoklu seçim modunu otomatik aç
+    if (selectedIndices.length > 1 && !multiSelectMode) {
+        multiSelectMode = true;
+        const btn = document.getElementById('multiSelectToggle');
+        if (btn) {
+            btn.innerText = mevcutDil === "tr" ? "🔗 Çoklu Seçim: AÇIK" : "🔗 Multi-Select: ON";
+            btn.classList.add('active');
+        }
+    }
+    if (selectedIndices.length === 1) {
+        document.getElementById('manualHexInput').value = fileData[selectedIndices[0]].toString(16).toUpperCase().padStart(2, '0');
+    }
+    renderHexView();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -379,6 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(fInput) {
         fInput.addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
+            originalFileName = file.name; // Dosya adını sakla (kaydederken kullanılacak)
             const reader = new FileReader();
             reader.onload = function(evt) {
                 fileData = new Uint8Array(evt.target.result); 
@@ -389,5 +425,3 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-        
