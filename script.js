@@ -8,7 +8,7 @@ let searchLength = 0;
 
 // 🎯 Artık Groq'a DİREKT bağlanmıyoruz. Anahtar burada YOK.
 // İstekler senin Cloudflare Worker proxy'ne gidiyor, anahtar orada (secret olarak) duruyor.
-const PROXY_URL = "https://ew6-hex-editor-ai-zynex.workers.dev";
+const PROXY_URL = "https://ew6-groq-proxy.ew6-hex-editor-ai-zynex.workers.dev";
 const GROQ_MODEL = "openai/gpt-oss-120b";
 
 const SYSTEM_KNOWLEDGE = {
@@ -425,4 +425,3 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-            
