@@ -44,7 +44,7 @@
 
         <div class="file-panel">
             <label for="fileInput" class="file-label" id="lblOpenFile">📂 Dosya Seç / Open File</label>
-            <input type="file" id="fileInput" accept=".bin,.sav,.dat,.btl,.*">
+            <input type="file" id="fileInput" accept="*/*">
             <button id="downloadBtn" style="display:none;" onclick="downloadModdedFile()">💾 Dosyayı Kaydet</button>
         </div>
 
@@ -55,7 +55,7 @@
             </div>
             <div class="menu-info" id="editMenuInfo">Düzenlemek için aşağıdan byte seçin.</div>
             <div class="menu-actions">
-                <input type="text" id="manualAddressInput" placeholder="Adresler" readonly>
+                <input type="text" id="manualAddressInput" placeholder="Adresler (örn: 48B3,48B8)" onkeypress="if(event.key === 'Enter') manuelAdresGuncelle()" onblur="manuelAdresGuncelle()">
                 <input type="text" id="manualHexInput" placeholder="Yeni Hex">
                 <button class="action-btn change-btn" onclick="manuelAdresDegistir()">✏️ Değiştir</button>
                 <button class="action-btn delete-btn" onclick="manuelAdresSil()">🗑️ Sıfırla</button>
